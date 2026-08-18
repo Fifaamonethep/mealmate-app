@@ -15,6 +15,7 @@ export const useDebtsStore = defineStore('debtsStore', () => {
       const { data: dbExpenses, error: dbError } = await supabase
         .from('expenses')
         .select(`
+          user_id,
           paid,
           actual_cost,
           profiles ( full_name )
@@ -24,7 +25,8 @@ export const useDebtsStore = defineStore('debtsStore', () => {
 
       // 2. Format them for the backend algorithm
       const formattedExpenses = dbExpenses.map(e => ({
-        userId: e.profiles.full_name,
+        userId: e.user_id,
+        userName: e.profiles.full_name, // keep name for UI
         paid: parseFloat(e.paid),
         actualCost: parseFloat(e.actual_cost)
       }))

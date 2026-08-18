@@ -220,19 +220,29 @@ const handleFileUpload = async (event) => {
 
   isUploading.value = true
   try {
-    // 1. Get from_user_id and to_user_id based on names (MVP logic)
-    const { data: profiles } = await supabase.from('profiles').select('id, full_name').in('full_name', [selectedTx.value.from, selectedTx.value.to])
+    // We now have fromId and toId from the new API response format!
+    const fromId = selectedTx.value.fromId
+    const toId = selectedTx.value.toId
+
+    // 1. Upload the image to Supabase Storage
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${Date.now()}_${fromId}_to_${toId}.${fileExt}`
     
-    const fromId = profiles.find(p => p.full_name === selectedTx.value.from)?.id
-    const toId = profiles.find(p => p.full_name === selectedTx.value.to)?.id
+    const { error: uploadError } = await supabase.storage
+      .from('slips') // make sure the 'slips' bucket exists in your Supabase
+      .upload(fileName, file)
+      
+    if (uploadError) throw uploadError
+
+    const { data: publicUrlData } = supabase.storage.from('slips').getPublicUrl(fileName)
+    const publicUrl = publicUrlData.publicUrl
 
     // 2. Insert into slips table
-    // Note: We use a placeholder image url since we didn't set up Supabase Storage buckets yet
     const { error } = await supabase.from('slips').insert([{
       from_user_id: fromId,
       to_user_id: toId,
       amount: selectedTx.value.amount,
-      image_url: 'https://via.placeholder.com/300x400.png?text=Mock+Slip',
+      image_url: publicUrl,
       status: 'Needs Review'
     }])
 

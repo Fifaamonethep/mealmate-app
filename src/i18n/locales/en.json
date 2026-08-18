@@ -6,7 +6,10 @@
     "debts": "Debts",
     "admin": "Admin",
     "profile": "Profile",
-    "logout": "Logout"
+    "logout": "Logout",
+    "addMeal": "Add Meal",
+    "addFriend": "Add Friend",
+    "createGroup": "Create Group"
   },
   "auth": {
     "welcome": "Welcome Back",
@@ -72,5 +75,40 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "uploading": "Uploading..."
+  },
+  "addMeal": {
+    "title": "Add New Expense",
+    "subtitle": "Log a new meal to split with friends.",
+    "aiScan": "AI Smart Scan",
+    "aiScanDesc": "Upload receipt to auto-fill amount.",
+    "mealTitle": "Meal Title",
+    "titlePlaceholder": "e.g. Friday Sushi",
+    "totalAmount": "Total Amount (฿)",
+    "selectGroup": "Select Group",
+    "groupPlaceholder": "-- Choose a group --",
+    "noGroupsError": "You need to create a group first.",
+    "payerType": "Payer Type",
+    "payerSingle": "Single",
+    "payerMulti": "Multi-Payer",
+    "splitMethod": "Split Method",
+    "splitEqual": "Equal",
+    "splitCustom": "Custom",
+    "createMeal": "Create Meal",
+    "saving": "Saving...",
+    "ocrCropWarning": "AI Failed to parse the receipt. Please crop the image to the total amount and try again.",
+    "userRequired": "Please log in first!",
+    "success": "Meal saved! Debts have been updated."
+  },
+  "admin": {
+    "title": "Admin Dashboard",
+    "subtitle": "System overviews and slip verifications.",
+    "warningTitle": "Restricted Access Portal",
+    "warningDesc": "Only authorized administrators can modify global matrices and force confirm payment slips.",
+    "pendingVerifs": "Pending Verifications",
+    "tableTx": "Transaction",
+    "tableAmount": "Amount",
+    "tableStatus": "Status",
+    "tableActions": "Actions",
+    "noSlips": "No pending slips to review!"
   }
 }

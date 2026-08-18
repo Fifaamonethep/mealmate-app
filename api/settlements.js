@@ -30,9 +30,9 @@ export default function handler(req, res) {
       const net = exp.paid - exp.actualCost;
 
       if (net > 1e-9) {
-        creditors.push({ userId: exp.userId, balance: net });
+        creditors.push({ userId: exp.userId, userName: exp.userName, balance: net });
       } else if (net < -1e-9) {
-        debtors.push({ userId: exp.userId, balance: Math.abs(net) });
+        debtors.push({ userId: exp.userId, userName: exp.userName, balance: Math.abs(net) });
       }
     }
 
@@ -58,8 +58,10 @@ export default function handler(req, res) {
 
       if (roundedAmount > 0) {
         transactions.push({
-          from: debtor.userId,
-          to: creditor.userId,
+          fromId: debtor.userId,
+          from: debtor.userName,
+          toId: creditor.userId,
+          to: creditor.userName,
           amount: roundedAmount,
         });
       }

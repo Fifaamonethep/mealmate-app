@@ -5,13 +5,13 @@
 @tailwind utilities;
 
 :root {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  --color-primary: #16a34a;
-  --color-primary-light: #22c55e;
-  --color-primary-dark: #15803d;
+  --color-primary: #10b981; /* Emerald 500 */
+  --color-primary-light: #34d399; /* Emerald 400 */
+  --color-primary-dark: #059669; /* Emerald 600 */
 }
 
 body {

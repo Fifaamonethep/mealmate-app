@@ -4,20 +4,20 @@
     <div class="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-2xl mb-8">
       <div class="flex items-center">
         <ShieldAlert class="w-6 h-6 text-red-500 mr-3" />
-        <h2 class="text-lg font-bold text-red-700 dark:text-red-400">Restricted Access Portal</h2>
+        <h2 class="text-lg font-bold text-red-700 dark:text-red-400">{{ $t('admin.warningTitle') }}</h2>
       </div>
-      <p class="mt-2 text-sm text-red-600 dark:text-red-300 ml-9">Only authorized administrators can modify global matrices and force confirm payment slips.</p>
+      <p class="mt-2 text-sm text-red-600 dark:text-red-300 ml-9">{{ $t('admin.warningDesc') }}</p>
     </div>
 
     <div class="flex items-center justify-between mb-8">
       <div>
-        <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Admin Dashboard</h1>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">System overviews and slip verifications.</p>
+        <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">{{ $t('admin.title') }}</h1>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{{ $t('admin.subtitle') }}</p>
       </div>
     </div>
 
     <!-- Slips Queue -->
-    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Pending Verifications</h3>
+    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">{{ $t('admin.pendingVerifs') }}</h3>
     
     <!-- Notification Toast -->
     <transition name="toast">
@@ -32,10 +32,10 @@
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-900/50">
             <tr>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Transaction</th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-              <th scope="col" class="px-6 py-4 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('admin.tableTx') }}</th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('admin.tableAmount') }}</th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('admin.tableStatus') }}</th>
+              <th scope="col" class="px-6 py-4 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('admin.tableActions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -44,7 +44,10 @@
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center space-x-3">
                   <div class="w-10 h-10 rounded-lg bg-gray-200 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
-                    <img :src="`https://i.pravatar.cc/150?u=${slip.from}`" class="opacity-50" />
+                    <!-- Real slip image now shows when clicked (could implement modal, for now just link) -->
+                    <a :href="slip.image" target="_blank" class="hover:opacity-80">
+                      <img :src="slip.image" class="w-full h-full object-cover" />
+                    </a>
                   </div>
                   <div>
                     <p class="text-sm font-bold text-gray-900 dark:text-white">{{ slip.from }} ➔ {{ slip.to }}</p>
@@ -79,7 +82,7 @@
 
             <tr v-if="pendingSlips.length === 0">
               <td colspan="4" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400 font-medium">
-                No pending slips to review!
+                {{ $t('admin.noSlips') }}
               </td>
             </tr>
 

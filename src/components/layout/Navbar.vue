@@ -44,29 +44,8 @@
             <Sun v-if="isDark" class="w-5 h-5 text-yellow-400 transition-transform hover:rotate-45 duration-300" />
             <Moon v-else class="w-5 h-5 text-gray-600 transition-transform hover:-rotate-12 duration-300" />
           </button>
-
-          <!-- Mobile Hamburger -->
-          <button v-if="authStore.user" @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-            <Menu v-if="!mobileMenuOpen" class="w-5 h-5 text-gray-700 dark:text-gray-300" />
-            <X v-else class="w-5 h-5 text-gray-700 dark:text-gray-300" />
-          </button>
         </div>
       </div>
-
-      <!-- Mobile Menu -->
-      <transition name="slide">
-        <div v-if="mobileMenuOpen && authStore.user" class="md:hidden pb-4 space-y-1">
-          <router-link v-for="link in navLinks" :key="link.path" :to="link.path" 
-            @click="mobileMenuOpen = false"
-            class="block text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 font-medium px-4 py-3 rounded-xl transition-all duration-200">
-            {{ link.label }}
-          </router-link>
-          <router-link to="/profile" @click="mobileMenuOpen = false"
-            class="block text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 font-medium px-4 py-3 rounded-xl transition-all duration-200 sm:hidden">
-            {{ $t('nav.profile') || 'Profile' }}
-          </router-link>
-        </div>
-      </transition>
     </div>
   </nav>
 </template>
@@ -76,7 +55,7 @@ import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/authStore'
 import { useAppStore } from '@/stores/appStore'
-import { Sun, Moon, Utensils, LogOut, Menu, X } from 'lucide-vue-next'
+import { Sun, Moon, Utensils, LogOut } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 
 const { t } = useI18n()
@@ -84,7 +63,6 @@ const appStore = useAppStore()
 const authStore = useAuthStore()
 const router = useRouter()
 
-const mobileMenuOpen = ref(false)
 const currentLang = ref(appStore.currentLang)
 const isDark = ref(appStore.isDark)
 
