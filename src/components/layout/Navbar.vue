@@ -89,6 +89,14 @@ const handleLogout = async () => {
 <style scoped>
 .router-link-active:not([href="/"]),
 .router-link-exact-active {
-  @apply text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 font-bold;
+  color: var(--color-primary);
+  font-weight: 700;
+  background-color: rgba(22, 163, 74, 0.08);
+  border-radius: 0.75rem;
+}
+:root.dark .router-link-active:not([href="/"]),
+:root.dark .router-link-exact-active {
+  color: #4ade80;
+  background-color: rgba(22, 163, 74, 0.15);
 }
 </style>
