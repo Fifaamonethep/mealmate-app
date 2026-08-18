@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 
 export const useAuthStore = defineStore('authStore', () => {
   const user = ref(null)
+  const isInitialized = ref(false)
   const onlineUsers = ref(new Set())
   let presenceChannel = null
 
