@@ -1,7 +1,7 @@
 <template>
   <nav class="sticky top-0 z-50 backdrop-blur-xl bg-white/80 dark:bg-[#0f172a]/90 border-b border-gray-200/50 dark:border-gray-800/50 transition-all duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-16">
+      <div class="flex justify-between items-center h-16 relative">
         
         <!-- Logo -->
         <button @click="toggleThemeFromLogo" class="flex-shrink-0 flex items-center gap-3 hover:opacity-80 transition-transform active:scale-95 focus:outline-none">
@@ -12,17 +12,17 @@
           <span class="font-extrabold text-xl tracking-tight text-gray-900 dark:text-white">MealMate</span>
         </button>
 
+        <!-- Desktop Navigation (Centered & Compact) -->
+        <div class="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-md px-2 py-1.5 rounded-full shadow-sm border border-gray-200/50 dark:border-gray-700/50 space-x-1">
+          <router-link to="/" class="px-4 py-1.5 rounded-full text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-all" active-class="bg-white dark:bg-gray-700 text-primary-500 dark:text-primary-400 shadow-sm">{{ $t('nav.home') }}</router-link>
+          <router-link to="/meals" class="px-4 py-1.5 rounded-full text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-all" active-class="bg-white dark:bg-gray-700 text-primary-500 dark:text-primary-400 shadow-sm">{{ $t('nav.addMeal') || 'Meals' }}</router-link>
+          <router-link to="/groups" class="px-4 py-1.5 rounded-full text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-all" active-class="bg-white dark:bg-gray-700 text-primary-500 dark:text-primary-400 shadow-sm">{{ $t('nav.groups') }}</router-link>
+          <router-link to="/debts" class="px-4 py-1.5 rounded-full text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-all" active-class="bg-white dark:bg-gray-700 text-primary-500 dark:text-primary-400 shadow-sm">{{ $t('nav.debts') }}</router-link>
+          <router-link to="/friends" class="px-4 py-1.5 rounded-full text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-all" active-class="bg-white dark:bg-gray-700 text-primary-500 dark:text-primary-400 shadow-sm">{{ $t('nav.friends') }}</router-link>
+        </div>
+
         <!-- Controls (Right Side) -->
         <div class="flex items-center space-x-3 sm:space-x-4">
-          
-          <!-- Desktop Navigation -->
-          <div class="hidden md:flex items-center space-x-6 mr-4">
-            <router-link to="/" class="text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 transition-colors" active-class="text-primary-500">{{ $t('nav.home') }}</router-link>
-            <router-link to="/meals" class="text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 transition-colors" active-class="text-primary-500">{{ $t('nav.addMeal') || 'Meals' }}</router-link>
-            <router-link to="/groups" class="text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 transition-colors" active-class="text-primary-500">{{ $t('nav.groups') }}</router-link>
-            <router-link to="/debts" class="text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 transition-colors" active-class="text-primary-500">{{ $t('nav.debts') }}</router-link>
-            <router-link to="/friends" class="text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 transition-colors" active-class="text-primary-500">{{ $t('nav.friends') }}</router-link>
-          </div>
           
           <!-- Notifications (Bell) -->
           <div class="relative" v-click-outside="() => notifMenuOpen = false">
@@ -34,7 +34,7 @@
 
             <!-- Notifications Dropdown -->
             <transition name="dropdown">
-              <div v-if="notifMenuOpen" class="absolute right-0 mt-2 w-80 bg-white dark:bg-[#1e293b] rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.3)] border border-gray-100 dark:border-gray-700 overflow-hidden z-50">
+              <div v-if="notifMenuOpen" class="absolute right-[-60px] sm:right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-[320px] bg-white dark:bg-[#1e293b] rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.3)] border border-gray-100 dark:border-gray-700 overflow-hidden z-50">
                 <div class="p-4 border-b border-gray-100 dark:border-gray-700/50 flex justify-between items-center bg-gray-50/50 dark:bg-[#0f172a]/50">
                   <h3 class="font-bold text-gray-900 dark:text-white">Notifications</h3>
                   <button class="text-xs font-bold text-primary-500 hover:text-primary-600">Mark all as read</button>
