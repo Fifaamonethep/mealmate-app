@@ -13,7 +13,7 @@
         </button>
 
         <!-- Desktop Navigation (Centered & Compact) -->
-        <div class="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-md px-2 py-1.5 rounded-full shadow-sm border border-gray-200/50 dark:border-gray-700/50 space-x-1">
+        <div v-if="authStore.user" class="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-md px-2 py-1.5 rounded-full shadow-sm border border-gray-200/50 dark:border-gray-700/50 space-x-1">
           <router-link to="/" class="px-4 py-1.5 rounded-full text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-all" active-class="bg-white dark:bg-gray-700 text-primary-500 dark:text-primary-400 shadow-sm">{{ $t('nav.home') }}</router-link>
           <router-link to="/meals" class="px-4 py-1.5 rounded-full text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-all" active-class="bg-white dark:bg-gray-700 text-primary-500 dark:text-primary-400 shadow-sm">{{ $t('nav.addMeal') || 'Meals' }}</router-link>
           <router-link to="/groups" class="px-4 py-1.5 rounded-full text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-all" active-class="bg-white dark:bg-gray-700 text-primary-500 dark:text-primary-400 shadow-sm">{{ $t('nav.groups') }}</router-link>
@@ -25,7 +25,7 @@
         <div class="flex items-center space-x-3 sm:space-x-4">
           
           <!-- Notifications (Bell) -->
-          <div class="relative" v-click-outside="() => notifMenuOpen = false">
+          <div v-if="authStore.user" class="relative" v-click-outside="() => notifMenuOpen = false">
             <button @click="notifMenuOpen = !notifMenuOpen" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-300 transition-colors focus:outline-none relative">
               <Bell class="w-5 h-5" />
               <!-- Notification Badge -->
@@ -101,7 +101,7 @@
           </button>
 
           <!-- Profile Avatar Link -->
-          <router-link to="/profile" class="relative group ml-2">
+          <router-link v-if="authStore.user" to="/profile" class="relative group ml-2">
             <div class="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center border-2 border-white dark:border-[#0f172a] shadow-sm hover:scale-105 transition-transform">
               <img v-if="authStore.user?.avatarUrl" :src="authStore.user.avatarUrl" class="w-full h-full object-cover">
               <span v-else class="text-white font-bold text-sm">{{ authStore.user?.fullName?.substring(0, 2) || 'U' }}</span>
