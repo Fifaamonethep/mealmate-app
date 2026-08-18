@@ -4,7 +4,7 @@
       
       <div class="text-center" data-aos="fade-down">
         <div class="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-primary-500/20 animate-float overflow-hidden border border-gray-100 dark:border-gray-800 p-1">
-          <img src="@/assets/mealmate_logo.png" alt="MealMate Logo" class="w-full h-full object-cover rounded-xl" />
+          <img src="@/assets/mealmate_logo.png" alt="MealMate Logo" class="w-full h-full object-contain rounded-xl" />
         </div>
         <h2 class="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">{{ $t('auth.welcome') }}</h2>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">

@@ -7,7 +7,7 @@
         <button @click="toggleThemeFromLogo" class="flex-shrink-0 flex items-center gap-3 hover:opacity-80 transition-transform active:scale-95 focus:outline-none">
           <!-- Custom AI Generated Logo -->
           <div class="w-10 h-10 rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-gray-800">
-             <img src="@/assets/mealmate_logo.png" class="w-full h-full object-cover" alt="MealMate Logo">
+             <img src="@/assets/mealmate_logo.png" class="w-full h-full object-contain" alt="MealMate Logo">
           </div>
           <span class="font-extrabold text-xl tracking-tight text-gray-900 dark:text-white">MealMate</span>
         </button>

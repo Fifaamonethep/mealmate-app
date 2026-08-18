@@ -7,7 +7,7 @@
         
         <!-- Header Image / Banner -->
         <div class="h-32 bg-primary-500 relative overflow-hidden flex items-center justify-center">
-          <div class="absolute inset-0 bg-[url('@/assets/mealmate_logo.png')] opacity-10 bg-cover bg-center blur-sm"></div>
+          <div class="absolute inset-0 bg-[url('@/assets/mealmate_logo.png')] opacity-10 bg-contain bg-no-repeat bg-center blur-sm"></div>
           <h2 class="relative text-3xl font-black text-white drop-shadow-md z-10">{{ $t('auth.summaryTitle') || 'Debt Summary' }}</h2>
           <button @click="closeModal" class="absolute top-4 right-4 p-2 bg-black/20 hover:bg-black/40 text-white rounded-full transition-colors z-20">
             <X class="w-5 h-5" />
