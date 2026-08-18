@@ -1,0 +1,13 @@
+{
+  "nav": {
+    "home": "Home",
+    "friends": "Friends",
+    "groups": "Groups",
+    "debts": "Debts",
+    "admin": "Admin"
+  },
+  "theme": {
+    "dark": "Dark Mode",
+    "light": "Light Mode"
+  }
+}
