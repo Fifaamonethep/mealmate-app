@@ -8,7 +8,7 @@
         </div>
         <h2 class="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">{{ $t('auth.welcome') }}</h2>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          {{ step === 1 ? $t('auth.signInSubtitle') : $t('auth.enterOtpSubtitle') }}
+          {{ loginMethod === 'password' ? $t('auth.signInSubtitle') : (step === 1 ? $t('auth.signInSubtitle') : $t('auth.enterOtpSubtitle')) }}
         </p>
       </div>
 
@@ -20,8 +20,22 @@
         {{ successMsg }}
       </div>
 
-      <!-- Step 1: Email Input -->
-      <form v-if="step === 1" class="mt-8 space-y-6" @submit.prevent="handleSendOtp" data-aos="fade-up" data-aos-delay="100">
+      <!-- Login Method Tabs -->
+      <div class="flex p-1 bg-gray-100 dark:bg-gray-900/50 rounded-2xl animate-slide-down">
+        <button @click="loginMethod = 'otp'" 
+          :class="['flex-1 flex items-center justify-center py-2.5 rounded-xl text-sm font-bold transition-all', 
+            loginMethod === 'otp' ? 'bg-primary-500 text-white shadow-md' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200']">
+          <Mail class="w-4 h-4 mr-2" /> Magic Link
+        </button>
+        <button @click="loginMethod = 'password'" 
+          :class="['flex-1 flex items-center justify-center py-2.5 rounded-xl text-sm font-bold transition-all', 
+            loginMethod === 'password' ? 'bg-primary-500 text-white shadow-md' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200']">
+          <Key class="w-4 h-4 mr-2" /> Password
+        </button>
+      </div>
+
+      <!-- Step 1: Email Input (OTP) -->
+      <form v-if="loginMethod === 'otp' && step === 1" class="mt-8 space-y-6" @submit.prevent="handleSendOtp" data-aos="fade-up" data-aos-delay="100">
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{{ $t('auth.email') }}</label>
@@ -39,7 +53,7 @@
       </form>
 
       <!-- Step 2: OTP Input -->
-      <form v-else class="mt-8 space-y-6" @submit.prevent="handleVerifyOtp" data-aos="fade-up">
+      <form v-else-if="loginMethod === 'otp' && step === 2" class="mt-8 space-y-6" @submit.prevent="handleVerifyOtp" data-aos="fade-up">
         <div class="space-y-4">
           <div class="flex justify-between items-center mb-1">
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">{{ $t('auth.enterOtp') }}</label>
@@ -73,7 +87,38 @@
         </div>
       </form>
 
-      <div v-if="step === 1" class="mt-6" data-aos="fade-up" data-aos-delay="200">
+      <!-- Password Login Form -->
+      <form v-else-if="loginMethod === 'password'" class="mt-8 space-y-6" @submit.prevent="handlePasswordLogin" data-aos="fade-up" data-aos-delay="100">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{{ $t('auth.email') }}</label>
+            <input v-model="email" type="email" required class="input-field" placeholder="you@example.com">
+          </div>
+          <div>
+            <div class="flex justify-between mb-1">
+              <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">{{ $t('auth.password') }}</label>
+              <button type="button" @click="handleForgotPassword" class="text-xs font-bold text-primary-600 hover:text-primary-500 transition-colors active:scale-95">Forgot Password?</button>
+            </div>
+            <div class="relative">
+              <input v-model="password" :type="showPassword ? 'text' : 'password'" required class="input-field pr-12">
+              <button type="button" @click="showPassword = !showPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                <Eye v-if="!showPassword" class="w-5 h-5" />
+                <EyeOff v-else class="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <button type="submit" :disabled="isLoading" class="btn-primary w-full flex justify-center items-center">
+            <Loader2 v-if="isLoading" class="w-5 h-5 mr-2 animate-spin" />
+            <LogIn v-else class="w-5 h-5 mr-2" />
+            {{ isLoading ? $t('auth.signingIn') : $t('auth.signIn') }}
+          </button>
+        </div>
+      </form>
+
+      <div v-if="(loginMethod === 'otp' && step === 1) || loginMethod === 'password'" class="mt-6" data-aos="fade-up" data-aos-delay="200">
         <div class="relative">
           <div class="absolute inset-0 flex items-center">
             <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
@@ -90,6 +135,11 @@
           </button>
         </div>
       </div>
+
+      <p v-if="loginMethod === 'password'" class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400" data-aos="fade-up" data-aos-delay="300">
+        {{ $t('auth.noAccount') }}
+        <router-link to="/signup" class="font-bold text-primary-600 hover:text-primary-500 transition-colors">{{ $t('auth.signUp') }}</router-link>
+      </p>
       
     </div>
   </div>
@@ -100,14 +150,18 @@ import { ref, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import { useI18n } from 'vue-i18n'
-import { LogIn, Loader2, Mail } from 'lucide-vue-next'
+import { LogIn, Loader2, Mail, Key, Eye, EyeOff } from 'lucide-vue-next'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const { t } = useI18n()
 
+const loginMethod = ref('otp')
 const step = ref(1)
 const email = ref('')
+const password = ref('')
+const showPassword = ref(false)
+
 const otp = ref(['', '', '', '', '', ''])
 const otpRefs = ref([])
 const isLoading = ref(false)
@@ -144,7 +198,6 @@ const handleVerifyOtp = async () => {
     if (authStore.needsOnboarding) {
       router.push('/onboarding')
     } else {
-      // Set flag to show summary poster
       sessionStorage.setItem('show_summary_poster', 'true')
       router.push('/')
     }
@@ -152,6 +205,37 @@ const handleVerifyOtp = async () => {
     errorMsg.value = error.message
   } finally {
     isLoading.value = false
+  }
+}
+
+const handlePasswordLogin = async () => {
+  isLoading.value = true
+  errorMsg.value = ''
+  try {
+    await authStore.loginWithPassword(email.value, password.value)
+    if (authStore.needsOnboarding) {
+      router.push('/onboarding')
+    } else {
+      sessionStorage.setItem('show_summary_poster', 'true')
+      router.push('/')
+    }
+  } catch (error) {
+    errorMsg.value = error.message
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const handleForgotPassword = async () => {
+  if (!email.value) {
+    errorMsg.value = t('auth.enterEmailReset')
+    return
+  }
+  try {
+    await authStore.resetPassword(email.value)
+    alert(t('auth.resetEmailSent'))
+  } catch (error) {
+    errorMsg.value = error.message
   }
 }
 
