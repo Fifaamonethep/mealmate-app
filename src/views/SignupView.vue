@@ -7,7 +7,9 @@
           <img src="@/assets/mealmate_logo.png" alt="MealMate Logo" class="w-full h-full object-cover rounded-xl" />
         </div>
         <h2 class="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">{{ $t('auth.createAccount') }}</h2>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{{ $t('auth.createSubtitle') }}</p>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          {{ step === 1 ? $t('auth.createSubtitle') : $t('auth.enterOtpSubtitle') }}
+        </p>
       </div>
 
       <div v-if="errorMsg" class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-xl text-sm font-medium border border-red-200 dark:border-red-800 animate-slide-down">
@@ -18,7 +20,7 @@
         {{ successMsg }}
       </div>
 
-      <form class="mt-8 space-y-6" @submit.prevent="handleSignup" data-aos="fade-up" data-aos-delay="100">
+      <form v-if="step === 1" class="mt-8 space-y-6" @submit.prevent="handleSignup" data-aos="fade-up" data-aos-delay="100">
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{{ $t('auth.fullName') }}</label>
@@ -49,6 +51,41 @@
         </div>
       </form>
 
+      <!-- Step 2: OTP Input -->
+      <form v-else class="mt-8 space-y-6" @submit.prevent="handleVerifyOtp" data-aos="fade-up">
+        <div class="space-y-4">
+          <div class="flex justify-between items-center mb-1">
+            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">{{ $t('auth.enterOtp') }}</label>
+            <button type="button" @click="step = 1; otp = ['', '', '', '', '', '']" class="text-xs font-bold text-primary-600 hover:text-primary-500 transition-colors active:scale-95">
+              {{ $t('auth.changeEmail') }}
+            </button>
+          </div>
+          
+          <div class="flex justify-between gap-2" dir="ltr">
+            <input 
+              v-for="(digit, index) in 6" :key="index"
+              :ref="el => otpRefs[index] = el"
+              v-model="otp[index]"
+              @input="handleOtpInput(index, $event)"
+              @keydown="handleOtpKeydown(index, $event)"
+              type="text" 
+              inputmode="numeric" 
+              maxlength="1"
+              class="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:border-primary-500 focus:ring-0 transition-all duration-200 outline-none"
+              :class="{ 'scale-[1.05] border-primary-500 shadow-sm text-primary-600 dark:text-primary-400': otp[index] }"
+            >
+          </div>
+        </div>
+
+        <div>
+          <button type="submit" :disabled="isLoading || otp.join('').length !== 6" class="btn-primary w-full flex justify-center items-center">
+            <Loader2 v-if="isLoading" class="w-5 h-5 mr-2 animate-spin" />
+            <LogIn v-else class="w-5 h-5 mr-2" />
+            {{ isLoading ? $t('auth.verifying') : $t('auth.verifyOtpBtn') }}
+          </button>
+        </div>
+      </form>
+
       <p class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400" data-aos="fade-up" data-aos-delay="200">
         {{ $t('auth.hasAccount') }}
         <router-link to="/login" class="font-bold text-primary-600 hover:text-primary-500 transition-colors">{{ $t('auth.signIn2') }}</router-link>
@@ -58,21 +95,27 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
-import { UserPlus, Loader2, Eye, EyeOff } from 'lucide-vue-next'
+import { UserPlus, Loader2, Eye, EyeOff, LogIn } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
+const step = ref(1)
 const fullName = ref('')
 const email = ref('')
 const password = ref('')
+const showPassword = ref(false)
+
+const otp = ref(['', '', '', '', '', ''])
+const otpRefs = ref([])
 const isLoading = ref(false)
 const errorMsg = ref('')
 const successMsg = ref('')
-const showPassword = ref(false)
 
 const handleSignup = async () => {
   isLoading.value = true
@@ -80,14 +123,50 @@ const handleSignup = async () => {
   successMsg.value = ''
   try {
     await authStore.signUp(email.value, password.value, fullName.value)
-    successMsg.value = 'Registration successful! Redirecting...'
-    setTimeout(() => {
-      router.push('/')
-    }, 1500)
+    successMsg.value = t('auth.otpSent')
+    step.value = 2
+    nextTick(() => {
+      if (otpRefs.value[0]) otpRefs.value[0].focus()
+    })
   } catch (error) {
     errorMsg.value = error.message
   } finally {
     isLoading.value = false
+  }
+}
+
+const handleVerifyOtp = async () => {
+  const token = otp.value.join('')
+  if (token.length !== 6) return
+  
+  isLoading.value = true
+  errorMsg.value = ''
+  try {
+    // For signup with password, the OTP type is 'signup'
+    await authStore.verifyOtp(email.value, token, 'signup')
+    router.push('/')
+  } catch (error) {
+    errorMsg.value = error.message
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const handleOtpInput = (index, event) => {
+  const value = event.target.value
+  if (!/^\d*$/.test(value)) {
+    otp.value[index] = ''
+    return
+  }
+  
+  if (value && index < 5) {
+    otpRefs.value[index + 1].focus()
+  }
+}
+
+const handleOtpKeydown = (index, event) => {
+  if (event.key === 'Backspace' && !otp.value[index] && index > 0) {
+    otpRefs.value[index - 1].focus()
   }
 }
 </script>

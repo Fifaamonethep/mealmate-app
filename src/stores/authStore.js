@@ -155,8 +155,8 @@ export const useAuthStore = defineStore('authStore', () => {
     return data
   }
 
-  const verifyOtp = async (email, token) => {
-    const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'email' })
+  const verifyOtp = async (email, token, type = 'email') => {
+    const { data, error } = await supabase.auth.verifyOtp({ email, token, type })
     if (error) throw error
     if (data.user) {
       await fetchProfile(data.user.id)
