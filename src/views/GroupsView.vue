@@ -339,7 +339,8 @@ const createGroup = async () => {
       .insert({ 
         name: newGroup.value.name, 
         description: newGroup.value.description,
-        avatar_url: finalAvatarUrl
+        avatar_url: finalAvatarUrl,
+        created_by: authStore.user.id
       })
       .select()
       .single()
