@@ -5,6 +5,7 @@ import i18n from './i18n'
 import './style.css'
 import 'aos/dist/aos.css'
 import AOS from 'aos'
+import VueApexCharts from 'vue3-apexcharts'
 import App from './App.vue'
 
 const app = createApp(App)
@@ -12,6 +13,7 @@ const app = createApp(App)
 app.use(createPinia()) // เปิดใช้งานระบบจัดการข้อมูลส่วนกลาง (State)
 app.use(router)        // เปิดใช้งานระบบเปลี่ยนหน้าเว็บ
 app.use(i18n)          // เปิดใช้งานระบบหลายภาษา
+app.use(VueApexCharts) // เปิดใช้งานระบบกราฟ
 
 app.mount('#app')
 

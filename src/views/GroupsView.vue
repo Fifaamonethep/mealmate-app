@@ -132,10 +132,14 @@
                   <div class="w-full h-full bg-gradient-to-br" :class="getPresetGradient(n)"></div>
                 </button>
                 <div class="w-px h-8 bg-gray-200 dark:bg-gray-700 mx-2 flex-shrink-0"></div>
-                <!-- Upload button placeholder -->
-                <button class="flex-shrink-0 w-12 h-12 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-400 hover:text-primary-500 hover:border-primary-500 transition-colors">
-                  <Image class="w-5 h-5" />
-                </button>
+                <label class="flex-shrink-0 w-12 h-12 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-400 hover:text-primary-500 hover:border-primary-500 transition-colors cursor-pointer relative overflow-hidden group">
+                  <img v-if="newGroup.avatarUrlPreview" :src="newGroup.avatarUrlPreview" class="w-full h-full object-cover">
+                  <Image v-else class="w-5 h-5" />
+                  <div v-if="newGroup.avatarUrlPreview" class="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center">
+                    <span class="text-white text-[10px] font-bold text-center leading-tight">Change</span>
+                  </div>
+                  <input type="file" class="hidden" accept="image/*" @change="onGroupAvatarSelect">
+                </label>
               </div>
             </div>
 
@@ -208,6 +212,8 @@ const newGroup = ref({
   name: '',
   description: '',
   avatarPreset: 1,
+  avatarFile: null,
+  avatarUrlPreview: null,
   members: []
 })
 
@@ -314,10 +320,27 @@ const createGroup = async () => {
   if (!authStore.user || !newGroup.value.name) return
   isSaving.value = true
   try {
+    let finalAvatarUrl = null
+    
+    // 0. Upload Avatar if chosen
+    if (newGroup.value.avatarFile) {
+      const fileExt = newGroup.value.avatarFile.name.split('.').pop()
+      const fileName = `${Date.now()}_${authStore.user.id}.${fileExt}`
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, newGroup.value.avatarFile)
+      if (!uploadError) {
+        const { data } = supabase.storage.from('avatars').getPublicUrl(fileName)
+        finalAvatarUrl = data.publicUrl
+      }
+    }
+
     // 1. Insert into groups
     const { data: groupData, error: groupError } = await supabase
       .from('groups')
-      .insert({ name: newGroup.value.name, description: newGroup.value.description })
+      .insert({ 
+        name: newGroup.value.name, 
+        description: newGroup.value.description,
+        avatar_url: finalAvatarUrl
+      })
       .select()
       .single()
     if (groupError) throw groupError
@@ -332,7 +355,7 @@ const createGroup = async () => {
     if (membersError && membersError.code !== '42P01') throw membersError
 
     isCreatingGroup.value = false
-    newGroup.value = { name: '', description: '', avatarPreset: 1, members: [] }
+    newGroup.value = { name: '', description: '', avatarPreset: 1, avatarFile: null, avatarUrlPreview: null, members: [] }
     fetchGroups()
   } catch (error) {
     console.error(error)
@@ -343,6 +366,15 @@ const createGroup = async () => {
     }
   } finally {
     isSaving.value = false
+  }
+}
+
+const onGroupAvatarSelect = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    newGroup.value.avatarFile = file
+    newGroup.value.avatarUrlPreview = URL.createObjectURL(file)
+    newGroup.value.avatarPreset = 0 // clear preset
   }
 }
 

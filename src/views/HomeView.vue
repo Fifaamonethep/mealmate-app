@@ -16,7 +16,7 @@
           <span v-else class="text-primary-700 dark:text-primary-400 font-bold text-lg">{{ authStore.user?.fullName?.charAt(0) || 'U' }}</span>
         </div>
         <div>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Hello 👋</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{ $t('home.welcomeBack') }} 👋</p>
           <h1 class="text-xl font-bold text-gray-900 dark:text-white leading-tight">{{ authStore.user?.fullName || 'User' }}</h1>
         </div>
       </div>
@@ -32,7 +32,7 @@
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center space-x-2 text-sm font-bold text-gray-500 dark:text-gray-400">
           <Wallet class="w-4 h-4" />
-          <span>Net Balance</span>
+          <span>{{ $t('home.dashboard') }}</span>
         </div>
         <Sparkles class="w-5 h-5 text-yellow-500" />
       </div>
@@ -48,7 +48,7 @@
         <div class="flex-1 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-2xl p-4 transition-transform hover:scale-[1.02]">
           <div class="flex items-center text-red-500 mb-1">
             <ArrowDownLeft class="w-4 h-4 mr-1.5" />
-            <span class="text-xs font-bold uppercase tracking-wider">I Owe</span>
+            <span class="text-xs font-bold uppercase tracking-wider">{{ $t('home.youOwe') }}</span>
           </div>
           <p class="text-lg font-bold text-red-600 dark:text-red-400">{{ debtsStore.iOweTotal.toLocaleString() }} LAK</p>
         </div>
@@ -57,18 +57,26 @@
         <div class="flex-1 bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30 rounded-2xl p-4 transition-transform hover:scale-[1.02]">
           <div class="flex items-center text-green-500 mb-1">
             <ArrowUpRight class="w-4 h-4 mr-1.5" />
-            <span class="text-xs font-bold uppercase tracking-wider">Owed to Me</span>
+            <span class="text-xs font-bold uppercase tracking-wider">{{ $t('home.youAreOwed') }}</span>
           </div>
           <p class="text-lg font-bold text-green-600 dark:text-green-400">{{ debtsStore.owedToMeTotal.toLocaleString() }} LAK</p>
         </div>
       </div>
     </div>
 
+    <!-- Chart Section -->
+    <div class="mt-6 bg-white/80 dark:bg-[#0f172a]/90 backdrop-blur-xl border border-gray-200 dark:border-gray-800 rounded-[2rem] p-5 shadow-sm animate-slide-up stagger-1">
+      <h3 class="text-base font-bold text-gray-900 dark:text-white mb-2 flex items-center">
+        <Sparkles class="w-4 h-4 mr-2 text-yellow-500" /> Balance Overview
+      </h3>
+      <apexchart type="bar" height="200" :options="chartOptions" :series="chartSeries"></apexchart>
+    </div>
+
     <!-- Recent Activity Section -->
-    <div class="animate-slide-up stagger-2 pt-2">
+    <div class="animate-slide-up stagger-2 pt-2 mt-4">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-base font-bold text-gray-900 dark:text-white flex items-center">
-          <Utensils class="w-4 h-4 mr-2 text-gray-400" /> Recent Activity
+          <Utensils class="w-4 h-4 mr-2 text-gray-400" /> {{ $t('home.recentActivity') }}
         </h3>
         <router-link to="/meals" class="text-xs font-bold text-primary-500 flex items-center hover:text-primary-600 transition-colors">
           View All <ArrowRight class="w-3 h-3 ml-1" />
@@ -139,9 +147,11 @@ import { useDebtsStore } from '../stores/debts'
 import { supabase } from '../lib/supabase'
 import { Wallet, Sparkles, ArrowDownLeft, ArrowUpRight, Plus, Utensils, ArrowRight, Calendar, User, Receipt, Users } from 'lucide-vue-next'
 import SummaryPosterModal from '@/components/layout/SummaryPosterModal.vue'
+import { useAppStore } from '../stores/appStore'
 
 const authStore = useAuthStore()
 const debtsStore = useDebtsStore()
+const appStore = useAppStore()
 const recentMeals = ref([])
 
 onMounted(async () => {
@@ -172,6 +182,39 @@ onMounted(async () => {
      console.error(e)
   }
 })
+
+// Chart Configuration
+import { computed } from 'vue'
+const chartOptions = computed(() => {
+  const isDark = appStore.isDark
+  return {
+    chart: {
+      type: 'bar',
+      toolbar: { show: false },
+      background: 'transparent'
+    },
+    theme: { mode: isDark ? 'dark' : 'light' },
+    colors: ['#10b981', '#ef4444'], // Green for Owed, Red for Owe
+    plotOptions: {
+      bar: { borderRadius: 4, horizontal: true }
+    },
+    dataLabels: { enabled: false },
+    xaxis: {
+      categories: ['Balance (LAK)'],
+      labels: { style: { colors: isDark ? '#9ca3af' : '#6b7280' } }
+    },
+    yaxis: {
+      labels: { style: { colors: isDark ? '#9ca3af' : '#6b7280' } }
+    },
+    grid: { borderColor: isDark ? '#374151' : '#e5e7eb' },
+    tooltip: { theme: isDark ? 'dark' : 'light' }
+  }
+})
+
+const chartSeries = computed(() => [
+  { name: 'Owed to Me', data: [debtsStore.owedToMeTotal] },
+  { name: 'I Owe', data: [debtsStore.iOweTotal] }
+])
 
 const formatDate = (dateString) => {
   if (!dateString) return ''
