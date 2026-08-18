@@ -8,6 +8,10 @@
   font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --color-primary: #16a34a;
+  --color-primary-light: #22c55e;
+  --color-primary-dark: #15803d;
 }
 
 body {
@@ -28,32 +32,52 @@ body {
   transform: translateY(-8px);
 }
 
-/* ===== Button Hover Effects ===== */
+/* ===== Reusable Component Classes ===== */
 @layer components {
   .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl px-6 py-3 
-           shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/30
-           transition-all duration-200 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed;
+    background-color: var(--color-primary);
+    color: white;
+    font-weight: 700;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    box-shadow: 0 4px 14px rgba(22, 163, 74, 0.25);
+    transition: all 0.2s ease;
+  }
+  .btn-primary:hover {
+    background-color: var(--color-primary-dark);
+    box-shadow: 0 6px 20px rgba(22, 163, 74, 0.35);
+  }
+  .btn-primary:active {
+    transform: scale(0.95);
+  }
+  .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 
   .btn-secondary {
-    @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 
-           text-gray-700 dark:text-gray-300 font-bold rounded-xl px-6 py-3
-           hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm hover:shadow-md
-           transition-all duration-200 active:scale-95;
+    @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold rounded-xl px-6 py-3 shadow-sm transition-all duration-200;
+  }
+  .btn-secondary:hover {
+    @apply bg-gray-50 dark:bg-gray-700 shadow-md;
+  }
+  .btn-secondary:active {
+    transform: scale(0.95);
   }
 
   .card {
-    @apply bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl 
-           border border-white/20 dark:border-gray-700/50 
-           rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300;
+    @apply bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 rounded-3xl shadow-sm transition-all duration-300;
+  }
+  .card:hover {
+    @apply shadow-lg;
   }
 
   .input-field {
-    @apply w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 
-           rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-500 focus:border-transparent 
-           outline-none text-gray-900 dark:text-white placeholder-gray-400
-           transition-all duration-200;
+    @apply w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 outline-none text-gray-900 dark:text-white placeholder-gray-400 transition-all duration-200;
+  }
+  .input-field:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
   }
 }
 
