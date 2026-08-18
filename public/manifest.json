@@ -1,0 +1,16 @@
+{
+  "name": "MealMate",
+  "short_name": "MealMate",
+  "description": "Split bills with friends easily",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
+  "icons": [
+    {
+      "src": "/mealmate-logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png"
+    }
+  ]
+}
