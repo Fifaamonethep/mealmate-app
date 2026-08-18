@@ -4,10 +4,73 @@
     "friends": "ໝູ່ເພື່ອນ",
     "groups": "ກຸ່ມ",
     "debts": "ໜີ້ສິນ",
-    "admin": "ແອັດມິນ"
+    "admin": "ແອັດມິນ",
+    "profile": "ໂປຣໄຟລ໌",
+    "logout": "ອອກຈາກລະບົບ"
   },
-  "theme": {
-    "dark": "ໂໝດມືດ",
-    "light": "ໂໝດສະຫວ່າງ"
+  "auth": {
+    "welcome": "ຍິນດີຕ້ອນຮັບ",
+    "signInSubtitle": "ເຂົ້າສູ່ລະບົບເພື່ອຈັດການຄ່າໃຊ້ຈ່າຍ",
+    "email": "ອີເມວ",
+    "password": "ລະຫັດຜ່ານ",
+    "signIn": "ເຂົ້າສູ່ລະບົບ",
+    "signingIn": "ກຳລັງເຂົ້າສູ່ລະບົບ...",
+    "orContinueWith": "ຫຼືເຂົ້າສູ່ລະບົບດ້ວຍ",
+    "noAccount": "ຍັງບໍ່ມີບັນຊີ?",
+    "signUp": "ລົງທະບຽນ",
+    "createAccount": "ສ້າງບັນຊີ",
+    "createSubtitle": "ເຂົ້າຮ່ວມ MealMate ເພື່ອແບ່ງຄ່າອາຫານງ່າຍໆ",
+    "fullName": "ຊື່-ນາມສະກຸນ",
+    "creatingAccount": "ກຳລັງສ້າງບັນຊີ...",
+    "hasAccount": "ມີບັນຊີແລ້ວ?",
+    "signIn2": "ເຂົ້າສູ່ລະບົບ",
+    "signupSuccess": "ລົງທະບຽນສຳເລັດ! ກຳລັງປ່ຽນໜ້າ..."
+  },
+  "home": {
+    "dashboard": "ແດຊບອດ",
+    "welcomeBack": "ຍິນດີຕ້ອນຮັບກັບ,",
+    "youAreOwed": "ມີຄົນເປັນໜີ້ທ່ານ",
+    "youOwe": "ທ່ານເປັນໜີ້",
+    "recentActivity": "ກິດຈະກຳລ່າສຸດ"
+  },
+  "profile": {
+    "title": "ໂປຣໄຟລ໌ຂອງຂ້ອຍ",
+    "subtitle": "ຈັດການການຕັ້ງຄ່າການຈ່າຍເງິນ ແລະ QR Code",
+    "generalInfo": "ຂໍ້ມູນທົ່ວໄປ",
+    "fullName": "ຊື່-ນາມສະກຸນ",
+    "currency": "ສະກຸນເງິນເລີ່ມຕົ້ນ",
+    "paymentQR": "ຮັບເງິນ (QR Code ທະນາຄານ)",
+    "qrDescription": "ອັບໂຫຼດ QR Code PromptPay ຫຼື LAOQR ເພື່ອໃຫ້ໝູ່ສະແກນຈ່າຍເງິນໄດ້ໂດຍກົງ",
+    "uploadQR": "ອັບໂຫຼດຮູບ QR ໃໝ່",
+    "noQR": "ຍັງບໍ່ໄດ້ອັບໂຫຼດ QR Code",
+    "saveProfile": "ບັນທຶກໂປຣໄຟລ໌",
+    "saving": "ກຳລັງບັນທຶກ..."
+  },
+  "friends": {
+    "title": "ໝູ່ເພື່ອນ",
+    "subtitle": "ຜູ້ໃຊ້ງານ MealMate",
+    "searchPlaceholder": "ຄົ້ນຫາຜູ້ໃຊ້ຕາມຊື່...",
+    "noUsers": "ບໍ່ພົບຜູ້ໃຊ້",
+    "joined": "ສະມາຊິກ MealMate"
+  },
+  "groups": {
+    "title": "ກຸ່ມ",
+    "subtitle": "ທຣິບ ແລະ ກິດຈະກຳທີ່ແບ່ງປັນຮ່ວມກັນ",
+    "noGroups": "ທ່ານຍັງບໍ່ມີກຸ່ມ",
+    "noDescription": "ບໍ່ມີລາຍລະອຽດ"
+  },
+  "debts": {
+    "title": "ແຜນຊຳລະໜີ້",
+    "subtitle": "ການໂອນເງິນທີ່ເໝາະສົມທີ່ສຸດ",
+    "payNow": "ຈ່າຍເງິນ",
+    "noDebts": "ເຄລຍໜີ້ໝົດແລ້ວ! 🎉"
+  },
+  "common": {
+    "loading": "ກຳລັງໂຫຼດ...",
+    "error": "ເກີດຂໍ້ຜິດພາດ",
+    "save": "ບັນທຶກ",
+    "cancel": "ຍົກເລີກ",
+    "confirm": "ຢືນຢັນ",
+    "uploading": "ກຳລັງອັບໂຫຼດ..."
   }
 }

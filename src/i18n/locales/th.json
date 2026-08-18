@@ -4,10 +4,73 @@
     "friends": "เพื่อน",
     "groups": "กลุ่ม",
     "debts": "หนี้สิน",
-    "admin": "แอดมิน"
+    "admin": "แอดมิน",
+    "profile": "โปรไฟล์",
+    "logout": "ออกจากระบบ"
   },
-  "theme": {
-    "dark": "โหมดมืด",
-    "light": "โหมดสว่าง"
+  "auth": {
+    "welcome": "ยินดีต้อนรับ",
+    "signInSubtitle": "เข้าสู่ระบบเพื่อจัดการค่าใช้จ่าย",
+    "email": "อีเมล",
+    "password": "รหัสผ่าน",
+    "signIn": "เข้าสู่ระบบ",
+    "signingIn": "กำลังเข้าสู่ระบบ...",
+    "orContinueWith": "หรือเข้าสู่ระบบด้วย",
+    "noAccount": "ยังไม่มีบัญชี?",
+    "signUp": "สมัครสมาชิก",
+    "createAccount": "สร้างบัญชี",
+    "createSubtitle": "เข้าร่วม MealMate เพื่อแบ่งค่าอาหารง่ายๆ",
+    "fullName": "ชื่อ-นามสกุล",
+    "creatingAccount": "กำลังสร้างบัญชี...",
+    "hasAccount": "มีบัญชีอยู่แล้ว?",
+    "signIn2": "เข้าสู่ระบบ",
+    "signupSuccess": "สมัครสำเร็จ! กำลังเปลี่ยนหน้า..."
+  },
+  "home": {
+    "dashboard": "แดชบอร์ด",
+    "welcomeBack": "ยินดีต้อนรับกลับ,",
+    "youAreOwed": "มีคนเป็นหนี้คุณ",
+    "youOwe": "คุณเป็นหนี้",
+    "recentActivity": "กิจกรรมล่าสุด"
+  },
+  "profile": {
+    "title": "โปรไฟล์ของฉัน",
+    "subtitle": "จัดการการตั้งค่าการชำระเงินและ QR Code",
+    "generalInfo": "ข้อมูลทั่วไป",
+    "fullName": "ชื่อ-นามสกุล",
+    "currency": "สกุลเงินเริ่มต้น",
+    "paymentQR": "รับเงิน (QR Code ธนาคาร)",
+    "qrDescription": "อัปโหลด QR Code PromptPay หรือ LAOQR เพื่อให้เพื่อนสแกนจ่ายเงินได้โดยตรง",
+    "uploadQR": "อัปโหลดรูป QR ใหม่",
+    "noQR": "ยังไม่ได้อัปโหลด QR Code",
+    "saveProfile": "บันทึกโปรไฟล์",
+    "saving": "กำลังบันทึก..."
+  },
+  "friends": {
+    "title": "เพื่อน",
+    "subtitle": "ผู้ใช้งาน MealMate",
+    "searchPlaceholder": "ค้นหาผู้ใช้ตามชื่อ...",
+    "noUsers": "ไม่พบผู้ใช้",
+    "joined": "สมาชิก MealMate"
+  },
+  "groups": {
+    "title": "กลุ่ม",
+    "subtitle": "ทริปและกิจกรรมที่แชร์ร่วมกัน",
+    "noGroups": "คุณยังไม่มีกลุ่ม",
+    "noDescription": "ไม่มีรายละเอียด"
+  },
+  "debts": {
+    "title": "แผนชำระหนี้",
+    "subtitle": "การโอนเงินที่เหมาะสมที่สุดเพื่อเคลียร์หนี้ทั้งหมด",
+    "payNow": "จ่ายเงิน",
+    "noDebts": "เคลียร์หนี้หมดแล้ว! 🎉"
+  },
+  "common": {
+    "loading": "กำลังโหลด...",
+    "error": "เกิดข้อผิดพลาด",
+    "save": "บันทึก",
+    "cancel": "ยกเลิก",
+    "confirm": "ยืนยัน",
+    "uploading": "กำลังอัปโหลด..."
   }
 }

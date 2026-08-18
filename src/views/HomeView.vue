@@ -1,34 +1,36 @@
 <template>
   <div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4 animate-fade-in">
       <div>
-        <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Dashboard</h1>
-        <p class="mt-1 text-gray-500 dark:text-gray-400">Welcome back, <span class="font-bold text-primary-600 dark:text-primary-400">{{ authStore.user?.fullName || 'User' }}</span>!</p>
+        <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">{{ $t('home.dashboard') }}</h1>
+        <p class="mt-1 text-gray-500 dark:text-gray-400">{{ $t('home.welcomeBack') }} <span class="font-bold text-primary-600 dark:text-primary-400">{{ authStore.user?.fullName || 'User' }}</span>!</p>
       </div>
     </div>
 
     <!-- Balance Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
       <!-- Owed Card -->
-      <div class="relative overflow-hidden bg-gradient-to-br from-green-500 to-green-600 rounded-3xl p-6 shadow-lg shadow-green-500/20 text-white group">
-        <div class="absolute -right-6 -top-6 bg-white/20 w-32 h-32 rounded-full blur-2xl group-hover:scale-110 transition-transform duration-500"></div>
+      <div class="relative overflow-hidden bg-gradient-to-br from-emerald-500 to-green-600 rounded-3xl p-6 shadow-lg shadow-green-500/20 text-white group animate-slide-up">
+        <div class="absolute -right-6 -top-6 bg-white/10 w-32 h-32 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+        <div class="absolute -left-4 -bottom-4 bg-white/10 w-24 h-24 rounded-full blur-xl"></div>
         <div class="relative z-10">
           <div class="flex items-center justify-between mb-4">
-            <span class="text-green-50 font-medium tracking-wide uppercase text-sm">You are owed</span>
-            <div class="p-2 bg-white/20 rounded-xl"><ArrowUpRight class="w-5 h-5 text-white" /></div>
+            <span class="text-green-50 font-medium tracking-wide uppercase text-sm">{{ $t('home.youAreOwed') }}</span>
+            <div class="p-2 bg-white/20 rounded-xl backdrop-blur-sm"><ArrowUpRight class="w-5 h-5 text-white" /></div>
           </div>
           <h2 class="text-4xl font-black">1,500 <span class="text-2xl font-bold opacity-80">฿</span></h2>
         </div>
       </div>
 
       <!-- Owe Card -->
-      <div class="relative overflow-hidden bg-gradient-to-br from-red-500 to-red-600 rounded-3xl p-6 shadow-lg shadow-red-500/20 text-white group">
-        <div class="absolute -right-6 -top-6 bg-white/20 w-32 h-32 rounded-full blur-2xl group-hover:scale-110 transition-transform duration-500"></div>
+      <div class="relative overflow-hidden bg-gradient-to-br from-rose-500 to-red-600 rounded-3xl p-6 shadow-lg shadow-red-500/20 text-white group animate-slide-up stagger-2">
+        <div class="absolute -right-6 -top-6 bg-white/10 w-32 h-32 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+        <div class="absolute -left-4 -bottom-4 bg-white/10 w-24 h-24 rounded-full blur-xl"></div>
         <div class="relative z-10">
           <div class="flex items-center justify-between mb-4">
-            <span class="text-red-50 font-medium tracking-wide uppercase text-sm">You owe</span>
-            <div class="p-2 bg-white/20 rounded-xl"><ArrowDownRight class="w-5 h-5 text-white" /></div>
+            <span class="text-red-50 font-medium tracking-wide uppercase text-sm">{{ $t('home.youOwe') }}</span>
+            <div class="p-2 bg-white/20 rounded-xl backdrop-blur-sm"><ArrowDownRight class="w-5 h-5 text-white" /></div>
           </div>
           <h2 class="text-4xl font-black">300 <span class="text-2xl font-bold opacity-80">฿</span></h2>
         </div>
@@ -36,14 +38,14 @@
     </div>
 
     <!-- Recent Activity -->
-    <div>
-      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Recent Activity</h3>
-      <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl border border-white/40 dark:border-gray-700/50 rounded-3xl p-2 shadow-sm">
+    <div class="animate-slide-up stagger-3">
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">{{ $t('home.recentActivity') }}</h3>
+      <div class="card p-2">
         
         <!-- Activity Item 1 -->
-        <div class="flex items-center justify-between p-4 hover:bg-white/40 dark:hover:bg-gray-700/40 rounded-2xl transition-colors cursor-default">
+        <div class="flex items-center justify-between p-4 hover:bg-primary-50/50 dark:hover:bg-primary-900/10 rounded-2xl transition-all duration-200 cursor-default group">
           <div class="flex items-center space-x-4">
-            <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+            <div class="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
               <Utensils class="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
@@ -57,9 +59,9 @@
         </div>
 
         <!-- Activity Item 2 -->
-        <div class="flex items-center justify-between p-4 hover:bg-white/40 dark:hover:bg-gray-700/40 rounded-2xl transition-colors cursor-default">
+        <div class="flex items-center justify-between p-4 hover:bg-primary-50/50 dark:hover:bg-primary-900/10 rounded-2xl transition-all duration-200 cursor-default group">
           <div class="flex items-center space-x-4">
-            <div class="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+            <div class="w-12 h-12 rounded-2xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
               <Wallet class="w-6 h-6 text-green-600 dark:text-green-400" />
             </div>
             <div>
@@ -78,31 +80,8 @@
 </template>
 
 <script setup>
-import { ArrowUpRight, ArrowDownRight, Utensils, Wallet, ArrowRight, Receipt, Users, Calculator, ShieldCheck } from 'lucide-vue-next'
+import { ArrowUpRight, ArrowDownRight, Utensils, Wallet } from 'lucide-vue-next'
 import { useAuthStore } from '../stores/authStore'
 
 const authStore = useAuthStore()
-
-const features = [
-  {
-    name: 'Smart Scanning',
-    description: 'Upload your receipt and our AI will automatically extract items, prices, and totals.',
-    icon: Receipt,
-  },
-  {
-    name: 'Group Tracking',
-    description: 'Create trips or events and easily add friends to split the bill with.',
-    icon: Users,
-  },
-  {
-    name: 'Fair Splitting',
-    description: 'Choose between equal splits or itemized custom splits for accurate sharing.',
-    icon: Calculator,
-  },
-  {
-    name: 'Secure Settlements',
-    description: 'Our backend uses a greedy algorithm to minimize the number of transfers needed.',
-    icon: ShieldCheck,
-  },
-]
 </script>

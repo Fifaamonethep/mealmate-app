@@ -6,52 +6,56 @@ export const useAuthStore = defineStore('authStore', () => {
   const user = ref(null)
   const isInitialized = ref(false)
 
-  // Auto-detect if user is already logged in
   const initializeAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session) {
-      await fetchProfile(session.user.id)
-    }
-    
-    // Listen for auth state changes
-    supabase.auth.onAuthStateChange(async (_event, session) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
       if (session) {
         await fetchProfile(session.user.id)
-      } else {
+      }
+    } catch (err) {
+      console.error('Error getting session:', err)
+    }
+    
+    // Listen for auth state changes (Google OAuth redirect fires SIGNED_IN here)
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        await fetchProfile(session.user.id)
+      } else if (event === 'SIGNED_OUT') {
         user.value = null
       }
     })
+    
     isInitialized.value = true
   }
 
   const fetchProfile = async (userId) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-      
-    if (data) {
-      user.value = {
-        id: data.id,
-        username: data.username,
-        fullName: data.full_name,
-        avatarUrl: data.avatar_url
-      }
-    } else if (error && error.code === 'PGRST116') {
-      // Profile not found. This happens on first Google Login. Let's auto-create it.
-      const { data: { user: authUser } } = await supabase.auth.getUser()
-      if (authUser) {
-        await supabase.from('profiles').insert({
-          id: authUser.id,
-          full_name: authUser.user_metadata?.full_name || 'New User',
-          username: authUser.email?.split('@')[0] || `user_${Math.floor(Math.random()*10000)}`,
-          avatar_url: authUser.user_metadata?.avatar_url || ''
-        })
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
         
-        // Retry fetch
-        const { data: newProfile } = await supabase.from('profiles').select('*').eq('id', userId).single()
-        if (newProfile) {
+      if (data) {
+        user.value = {
+          id: data.id,
+          username: data.username,
+          fullName: data.full_name,
+          avatarUrl: data.avatar_url
+        }
+      } else if (error && (error.code === 'PGRST116' || error.code === '406')) {
+        // Profile doesn't exist yet (first Google login). Auto-create it.
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        if (authUser) {
+          const newProfile = {
+            id: authUser.id,
+            full_name: authUser.user_metadata?.full_name || authUser.user_metadata?.name || 'New User',
+            username: authUser.email?.split('@')[0] || `user_${Date.now()}`,
+            avatar_url: authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || ''
+          }
+          
+          await supabase.from('profiles').insert(newProfile)
+          
           user.value = {
             id: newProfile.id,
             username: newProfile.username,
@@ -60,37 +64,32 @@ export const useAuthStore = defineStore('authStore', () => {
           }
         }
       }
+    } catch (err) {
+      console.error('Error fetching profile:', err)
     }
   }
 
   const signUp = async (email, password, fullName) => {
-    // 1. Create Auth User
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    })
+    const { data, error } = await supabase.auth.signUp({ email, password })
     if (error) throw error
     
-    // 2. Wait for trigger or manually insert into profiles
-    // In many Supabase setups, a Postgres trigger creates the profile. 
-    // If not, we insert it manually here. Let's try inserting manually.
     if (data.user) {
-       await supabase.from('profiles').insert({
-         id: data.user.id,
-         full_name: fullName,
-         username: email.split('@')[0]
-       })
-       await fetchProfile(data.user.id)
+      await supabase.from('profiles').insert({
+        id: data.user.id,
+        full_name: fullName,
+        username: email.split('@')[0]
+      })
+      await fetchProfile(data.user.id)
     }
     return data
   }
 
   const loginWithPassword = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
+    if (data.user) {
+      await fetchProfile(data.user.id)
+    }
     return data
   }
 

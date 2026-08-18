@@ -4,10 +4,73 @@
     "friends": "Friends",
     "groups": "Groups",
     "debts": "Debts",
-    "admin": "Admin"
+    "admin": "Admin",
+    "profile": "Profile",
+    "logout": "Logout"
   },
-  "theme": {
-    "dark": "Dark Mode",
-    "light": "Light Mode"
+  "auth": {
+    "welcome": "Welcome Back",
+    "signInSubtitle": "Sign in to settle your debts",
+    "email": "Email address",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in...",
+    "orContinueWith": "Or continue with",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up",
+    "createAccount": "Create Account",
+    "createSubtitle": "Join MealMate and split bills easily",
+    "fullName": "Full Name",
+    "creatingAccount": "Creating account...",
+    "hasAccount": "Already have an account?",
+    "signIn2": "Sign in",
+    "signupSuccess": "Registration successful! Redirecting..."
+  },
+  "home": {
+    "dashboard": "Dashboard",
+    "welcomeBack": "Welcome back,",
+    "youAreOwed": "You are owed",
+    "youOwe": "You owe",
+    "recentActivity": "Recent Activity"
+  },
+  "profile": {
+    "title": "My Profile",
+    "subtitle": "Manage your payment settings and QR codes.",
+    "generalInfo": "General Information",
+    "fullName": "Full Name",
+    "currency": "Default Currency",
+    "paymentQR": "Receive Payments (Bank QR Code)",
+    "qrDescription": "Upload your PromptPay or LAOQR code so friends can scan and pay you directly when settling debts.",
+    "uploadQR": "Upload New QR Image",
+    "noQR": "No QR Code uploaded",
+    "saveProfile": "Save Profile",
+    "saving": "Saving..."
+  },
+  "friends": {
+    "title": "Friends",
+    "subtitle": "People on MealMate",
+    "searchPlaceholder": "Search users by name...",
+    "noUsers": "No users found.",
+    "joined": "Joined MealMate"
+  },
+  "groups": {
+    "title": "Groups",
+    "subtitle": "Your shared trips and events.",
+    "noGroups": "You don't have any groups yet.",
+    "noDescription": "No description"
+  },
+  "debts": {
+    "title": "Settlement Plan",
+    "subtitle": "Optimized transfers to settle all debts.",
+    "payNow": "Pay Now",
+    "noDebts": "All debts are settled! 🎉"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "uploading": "Uploading..."
   }
 }

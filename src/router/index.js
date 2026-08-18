@@ -18,10 +18,11 @@ const router = createRouter({
     routes
 })
 
-router.beforeEach(async (to, from, next) => {
+// Modern Vue Router guard (no deprecated `next()`)
+router.beforeEach(async (to) => {
     const authStore = useAuthStore()
     
-    // Wait for auth to initialize before checking routes
+    // Wait for auth to initialize
     if (!authStore.isInitialized) {
         await new Promise(resolve => {
             const unwatch = authStore.$subscribe((mutation, state) => {
@@ -30,7 +31,6 @@ router.beforeEach(async (to, from, next) => {
                     resolve()
                 }
             })
-            // If already initialized by the time we subscribe
             if (authStore.isInitialized) {
                 unwatch()
                 resolve()
@@ -41,12 +41,11 @@ router.beforeEach(async (to, from, next) => {
     const isLoggedIn = !!authStore.user
 
     if (to.meta.requiresAuth && !isLoggedIn) {
-        next('/login')
+        return '/login'
     } else if (to.meta.guestOnly && isLoggedIn) {
-        next('/')
-    } else {
-        next()
+        return '/'
     }
+    // implicitly returns undefined = allow navigation
 })
 
 export default router
