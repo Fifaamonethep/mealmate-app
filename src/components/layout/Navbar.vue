@@ -15,6 +15,15 @@
         <!-- Controls (Right Side) -->
         <div class="flex items-center space-x-3 sm:space-x-4">
           
+          <!-- Desktop Navigation -->
+          <div class="hidden md:flex items-center space-x-6 mr-4">
+            <router-link to="/" class="text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 transition-colors" active-class="text-primary-500">{{ $t('nav.home') }}</router-link>
+            <router-link to="/meals" class="text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 transition-colors" active-class="text-primary-500">{{ $t('nav.addMeal') || 'Meals' }}</router-link>
+            <router-link to="/groups" class="text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 transition-colors" active-class="text-primary-500">{{ $t('nav.groups') }}</router-link>
+            <router-link to="/debts" class="text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 transition-colors" active-class="text-primary-500">{{ $t('nav.debts') }}</router-link>
+            <router-link to="/friends" class="text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 transition-colors" active-class="text-primary-500">{{ $t('nav.friends') }}</router-link>
+          </div>
+          
           <!-- Notifications (Bell) -->
           <div class="relative" v-click-outside="() => notifMenuOpen = false">
             <button @click="notifMenuOpen = !notifMenuOpen" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-300 transition-colors focus:outline-none relative">

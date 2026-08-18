@@ -4,12 +4,12 @@
       
       <router-link to="/meals" class="nav-btn flex flex-col items-center justify-center w-14 h-12 rounded-xl text-gray-500 hover:text-primary-500 transition-all active:scale-90 active:bg-primary-50 dark:active:bg-primary-900/30" active-class="bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-bold">
         <Receipt class="w-5 h-5 mb-0.5" />
-        <span class="text-[10px]">Meals</span>
+        <span class="text-[10px]">{{ $t('nav.addMeal') || 'Meals' }}</span>
       </router-link>
 
       <router-link to="/groups" class="nav-btn flex flex-col items-center justify-center w-14 h-12 rounded-xl text-gray-500 hover:text-primary-500 transition-all active:scale-90 active:bg-primary-50 dark:active:bg-primary-900/30" active-class="bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-bold">
         <Users class="w-5 h-5 mb-0.5" />
-        <span class="text-[10px]">Groups</span>
+        <span class="text-[10px]">{{ $t('nav.groups') }}</span>
       </router-link>
 
       <!-- Center Prominent Dashboard -->
@@ -19,12 +19,12 @@
 
       <router-link to="/debts" class="nav-btn flex flex-col items-center justify-center w-14 h-12 rounded-xl text-gray-500 hover:text-primary-500 transition-all active:scale-90 active:bg-primary-50 dark:active:bg-primary-900/30" active-class="bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-bold">
         <CreditCard class="w-5 h-5 mb-0.5" />
-        <span class="text-[10px]">Debts</span>
+        <span class="text-[10px]">{{ $t('nav.debts') }}</span>
       </router-link>
 
       <router-link to="/friends" class="nav-btn flex flex-col items-center justify-center w-14 h-12 rounded-xl text-gray-500 hover:text-primary-500 transition-all active:scale-90 active:bg-primary-50 dark:active:bg-primary-900/30" active-class="bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-bold">
         <User class="w-5 h-5 mb-0.5" />
-        <span class="text-[10px]">Friends</span>
+        <span class="text-[10px]">{{ $t('nav.friends') }}</span>
       </router-link>
       
     </div>
