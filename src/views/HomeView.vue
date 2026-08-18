@@ -4,7 +4,7 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
       <div>
         <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Dashboard</h1>
-        <p class="mt-1 text-gray-500 dark:text-gray-400">Welcome back, <span class="font-bold text-primary-600 dark:text-primary-400">{{ authStore.user.fullName }}</span>!</p>
+        <p class="mt-1 text-gray-500 dark:text-gray-400">Welcome back, <span class="font-bold text-primary-600 dark:text-primary-400">{{ authStore.user?.fullName || 'User' }}</span>!</p>
       </div>
     </div>
 

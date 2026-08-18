@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 
 const routes = [
-    { path: '/', name: 'Home', component: () => import('../views/HomeView.vue') },
+    { path: '/', name: 'Home', component: () => import('../views/HomeView.vue'), meta: { requiresAuth: true } },
     { path: '/login', name: 'Login', component: () => import('../views/LoginView.vue'), meta: { guestOnly: true } },
     { path: '/signup', name: 'Signup', component: () => import('../views/SignupView.vue'), meta: { guestOnly: true } },
     { path: '/friends', name: 'Friends', component: () => import('../views/FriendsView.vue'), meta: { requiresAuth: true } },
