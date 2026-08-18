@@ -163,7 +163,10 @@ const debtsStore = useDebtsStore()
 const authStore = useAuthStore()
 
 const transactions = computed(() => {
-  return debtsStore.optimizedTransactions
+  if (!authStore.user) return []
+  return debtsStore.optimizedTransactions.filter(tx => 
+    tx.fromId === authStore.user.id || tx.toId === authStore.user.id
+  )
 })
 
 onMounted(() => {

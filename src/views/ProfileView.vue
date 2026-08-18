@@ -9,7 +9,7 @@
           <User v-else class="w-12 h-12 text-gray-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
           <label class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
             <Camera class="w-6 h-6 text-white" />
-            <input type="file" class="hidden" accept="image/*" @change="handleUploadAvatar" />
+            <input type="file" class="hidden" accept="image/*" @change="onFileSelect" />
           </label>
         </div>
         <div>
@@ -19,8 +19,38 @@
       </div>
     </div>
 
+    <!-- Cropper Modal -->
+    <transition name="modal">
+      <div v-if="isCropperOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" @click="isCropperOpen = false"></div>
+        <div class="relative bg-white dark:bg-gray-800 w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden flex flex-col">
+          <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Crop Avatar</h3>
+            <button @click="isCropperOpen = false" class="p-2 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+              <X class="w-4 h-4 text-gray-600 dark:text-gray-300" />
+            </button>
+          </div>
+          <div class="p-4 bg-gray-900">
+            <cropper
+              class="h-64 w-full"
+              ref="cropperRef"
+              :src="imageToCrop"
+              :stencil-props="{ aspectRatio: 1 }"
+              image-restriction="stencil"
+            />
+          </div>
+          <div class="p-4 flex justify-end space-x-3 bg-white dark:bg-gray-800">
+            <button @click="isCropperOpen = false" class="px-4 py-2 text-gray-600 dark:text-gray-400 font-bold hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors">Cancel</button>
+            <button @click="handleUploadCropped" :disabled="isUploadingAvatar" class="btn-primary flex items-center px-6 py-2">
+              <Loader2 v-if="isUploadingAvatar" class="w-4 h-4 mr-2 animate-spin" />
+              {{ isUploadingAvatar ? 'Saving...' : 'Save Avatar' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
     <div v-if="authStore.user" class="space-y-6">
-      
       <!-- General Info -->
       <div class="card p-6 animate-slide-up">
         <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">{{ $t('profile.generalInfo') }}</h3>
@@ -94,7 +124,9 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/authStore'
 import { supabase } from '../lib/supabase'
-import { User, QrCode, UploadCloud, Save, Camera, Lock } from 'lucide-vue-next'
+import { User, QrCode, UploadCloud, Save, Camera, Lock, X, Loader2 } from 'lucide-vue-next'
+import { Cropper } from 'vue-advanced-cropper'
+import 'vue-advanced-cropper/dist/style.css'
 
 const authStore = useAuthStore()
 
@@ -103,6 +135,13 @@ const isUploading = ref(false)
 const isSaving = ref(false)
 const newPassword = ref('')
 const isUpdatingPassword = ref(false)
+
+// Cropper State
+const isCropperOpen = ref(false)
+const imageToCrop = ref(null)
+const cropperRef = ref(null)
+const isUploadingAvatar = ref(false)
+const selectedFileExt = ref('png')
 
 onMounted(async () => {
   if (authStore.user) {
@@ -126,24 +165,52 @@ onMounted(async () => {
   }
 })
 
-const handleUploadAvatar = async (event) => {
+const onFileSelect = (event) => {
   const file = event.target.files[0]
   if (!file) return
-  try {
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${authStore.user.id}/avatar_${Date.now()}.${fileExt}`
-    
-    const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, file, { upsert: true })
-    if (uploadError) throw uploadError
-    
-    const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(fileName)
-    profile.value.avatarUrl = publicUrlData.publicUrl
+  selectedFileExt.value = file.name.split('.').pop()
+  
+  // Read file as URL to pass to cropper
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    imageToCrop.value = e.target.result
+    isCropperOpen.value = true
+  }
+  reader.readAsDataURL(file)
+  event.target.value = '' // reset input
+}
 
-    await supabase.from('profiles').update({ avatar_url: profile.value.avatarUrl }).eq('id', authStore.user.id)
-    authStore.user.avatarUrl = profile.value.avatarUrl
-    
+const handleUploadCropped = async () => {
+  if (!cropperRef.value) return
+  isUploadingAvatar.value = true
+
+  try {
+    const { canvas } = cropperRef.value.getResult()
+    if (!canvas) throw new Error("Could not get cropped image")
+
+    // Convert canvas to blob
+    canvas.toBlob(async (blob) => {
+      if (!blob) throw new Error("Could not create blob")
+      
+      const fileName = `${authStore.user.id}/avatar_${Date.now()}.${selectedFileExt.value}`
+      const file = new File([blob], fileName, { type: blob.type })
+
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, file, { upsert: true })
+      if (uploadError) throw uploadError
+      
+      const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(fileName)
+      profile.value.avatarUrl = publicUrlData.publicUrl
+
+      await supabase.from('profiles').update({ avatar_url: profile.value.avatarUrl }).eq('id', authStore.user.id)
+      authStore.user.avatarUrl = profile.value.avatarUrl
+      
+      isCropperOpen.value = false
+      isUploadingAvatar.value = false
+    }, 'image/jpeg', 0.9)
+
   } catch (error) {
     alert("Avatar upload error: " + error.message)
+    isUploadingAvatar.value = false
   }
 }
 
@@ -201,3 +268,23 @@ const saveProfile = async () => {
   }
 }
 </script>
+
+<style scoped>
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+.modal-enter-active .relative,
+.modal-leave-active .relative {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+.modal-enter-from .relative,
+.modal-leave-to .relative {
+  transform: scale(0.95) translateY(20px);
+}
+</style>
