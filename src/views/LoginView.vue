@@ -136,7 +136,7 @@
         </div>
       </div>
 
-      <p v-if="loginMethod === 'password'" class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400" data-aos="fade-up" data-aos-delay="300">
+      <p v-if="(loginMethod === 'otp' && step === 1) || loginMethod === 'password'" class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400" data-aos="fade-up" data-aos-delay="300">
         {{ $t('auth.noAccount') }}
         <router-link to="/signup" class="font-bold text-primary-600 hover:text-primary-500 transition-colors">{{ $t('auth.signUp') }}</router-link>
       </p>
