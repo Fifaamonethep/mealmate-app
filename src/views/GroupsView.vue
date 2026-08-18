@@ -335,7 +335,12 @@ const createGroup = async () => {
     newGroup.value = { name: '', description: '', avatarPreset: 1, members: [] }
     fetchGroups()
   } catch (error) {
-    alert("Error creating group: " + error.message)
+    console.error(error)
+    if (error.code === '42P01') {
+      alert("Database Error: Table 'groups' or 'group_members' does not exist. Please run the SQL schema in Supabase.")
+    } else {
+      alert("Error creating group: " + error.message)
+    }
   } finally {
     isSaving.value = false
   }

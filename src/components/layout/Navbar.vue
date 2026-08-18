@@ -29,7 +29,7 @@
             <button @click="notifMenuOpen = !notifMenuOpen" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-300 transition-colors focus:outline-none relative">
               <Bell class="w-5 h-5" />
               <!-- Notification Badge -->
-              <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-[#0f172a]"></span>
+              <span v-if="notificationsStore.unreadCount > 0" class="absolute top-1 right-1 w-4 h-4 bg-red-500 text-[10px] text-white flex items-center justify-center rounded-full border-2 border-white dark:border-[#0f172a]">{{ notificationsStore.unreadCount > 9 ? '9+' : notificationsStore.unreadCount }}</span>
             </button>
 
             <!-- Notifications Dropdown -->
@@ -37,30 +37,28 @@
               <div v-if="notifMenuOpen" class="absolute right-[-60px] sm:right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-[320px] bg-white dark:bg-[#1e293b] rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.3)] border border-gray-100 dark:border-gray-700 overflow-hidden z-50">
                 <div class="p-4 border-b border-gray-100 dark:border-gray-700/50 flex justify-between items-center bg-gray-50/50 dark:bg-[#0f172a]/50">
                   <h3 class="font-bold text-gray-900 dark:text-white">Notifications</h3>
-                  <button class="text-xs font-bold text-primary-500 hover:text-primary-600">Mark all as read</button>
+                  <button @click="notificationsStore.markAllAsRead" class="text-xs font-bold text-primary-500 hover:text-primary-600">Mark all as read</button>
                 </div>
                 
                 <div class="max-h-[300px] overflow-y-auto custom-scrollbar">
-                  <!-- Mock Notification 1 -->
-                  <div class="p-4 border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer flex items-start space-x-3 bg-primary-50/30 dark:bg-primary-900/10">
-                    <div class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 flex-shrink-0">
-                      <Receipt class="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p class="text-sm text-gray-800 dark:text-gray-200"><span class="font-bold">Amonethep</span> added a new meal <span class="font-bold">"Dinner"</span></p>
-                      <p class="text-xs text-primary-500 font-bold mt-1">You owe 500,000 LAK</p>
-                      <p class="text-[10px] text-gray-500 mt-1">2 mins ago</p>
-                    </div>
+                  <!-- Real Notifications -->
+                  <div v-if="notificationsStore.notifications.length === 0" class="p-8 text-center text-gray-500 dark:text-gray-400">
+                    <Bell class="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p class="text-sm">No notifications yet</p>
                   </div>
-
-                  <!-- Mock Notification 2 -->
-                  <div class="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer flex items-start space-x-3">
-                    <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 flex-shrink-0">
-                      <CheckCircle class="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p class="text-sm text-gray-800 dark:text-gray-200"><span class="font-bold">Jane Doe</span> verified your payment slip!</p>
-                      <p class="text-[10px] text-gray-500 mt-1">2 hours ago</p>
+                  <div v-else>
+                    <div v-for="notif in notificationsStore.notifications" :key="notif.id" 
+                         @click="notificationsStore.markAsRead(notif.id)"
+                         class="p-4 border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer flex items-start space-x-3"
+                         :class="{ 'bg-primary-50/30 dark:bg-primary-900/10': !notif.is_read }">
+                      <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                           :class="getNotificationIconBg(notif.type)">
+                        <component :is="getNotificationIcon(notif.type)" class="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p class="text-sm text-gray-800 dark:text-gray-200" v-html="notif.message"></p>
+                        <p class="text-[10px] text-gray-500 mt-1">{{ formatTimeAgo(notif.created_at) }}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -117,16 +115,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/authStore'
 import { useAppStore } from '@/stores/appStore'
+import { useNotificationsStore } from '@/stores/notificationsStore'
 import { useRouter } from 'vue-router'
-import { Sun, Moon, Bell, ChevronDown, Check, Receipt, CheckCircle } from 'lucide-vue-next'
+import { Sun, Moon, Bell, ChevronDown, Check, Receipt, CheckCircle, AlertCircle, HandCoins } from 'lucide-vue-next'
 
 const { t } = useI18n()
 const appStore = useAppStore()
 const authStore = useAuthStore()
+const notificationsStore = useNotificationsStore()
 const router = useRouter()
 
 const currentLang = ref(appStore.currentLang || 'en')
@@ -162,6 +162,45 @@ const toggleThemeFromLogo = () => {
     router.push('/')
   }
 }
+
+const getNotificationIcon = (type) => {
+  if (type === 'PAYMENT_VERIFIED') return CheckCircle
+  if (type === 'MEAL_ADDED') return Receipt
+  if (type === 'PAYMENT_SENT') return HandCoins
+  return AlertCircle
+}
+
+const getNotificationIconBg = (type) => {
+  if (type === 'PAYMENT_VERIFIED') return 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+  if (type === 'MEAL_ADDED') return 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
+  if (type === 'PAYMENT_SENT') return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400'
+  return 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+}
+
+const formatTimeAgo = (dateString) => {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffInSeconds = Math.floor((now - date) / 1000)
+  
+  if (diffInSeconds < 60) return 'Just now'
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} mins ago`
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`
+  return `${Math.floor(diffInSeconds / 86400)} days ago`
+}
+
+watch(() => authStore.user, (newUser) => {
+  if (newUser) {
+    notificationsStore.fetchNotifications()
+    notificationsStore.subscribeToNotifications()
+  } else {
+    notificationsStore.unsubscribe()
+    notificationsStore.notifications = []
+  }
+}, { immediate: true })
+
+onUnmounted(() => {
+  notificationsStore.unsubscribe()
+})
 
 // Simple click outside directive logic
 const vClickOutside = {

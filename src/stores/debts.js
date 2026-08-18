@@ -181,8 +181,21 @@ export const useDebtsStore = defineStore('debtsStore', () => {
 
   const verifyPayment = async (paymentId) => {
     try {
+      const { data: payment } = await supabase.from('payments').select('*').eq('id', paymentId).single()
       const { error } = await supabase.from('payments').update({ status: 'COMPLETED' }).eq('id', paymentId)
       if (error) throw error
+      
+      if (payment && payment.from_user_id) {
+         const { useNotificationsStore } = await import('./notificationsStore')
+         const notifStore = useNotificationsStore()
+         await notifStore.sendNotification(
+            payment.from_user_id,
+            'PAYMENT_VERIFIED',
+            `<b>${authStore.user?.user_metadata?.full_name || authStore.user?.email || 'Someone'}</b> verified your payment slip!`,
+            paymentId
+         )
+      }
+      
       await fetchSettlements() // Refresh
     } catch (err) {
       alert("Error verifying payment: " + err.message)
