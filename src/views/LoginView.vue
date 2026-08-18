@@ -25,7 +25,13 @@
               <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">{{ $t('auth.password') }}</label>
               <button type="button" @click="handleForgotPassword" class="text-xs font-bold text-primary-600 hover:text-primary-500 transition-colors active:scale-95">Forgot Password?</button>
             </div>
-            <input v-model="password" type="password" required class="input-field">
+            <div class="relative">
+              <input v-model="password" :type="showPassword ? 'text' : 'password'" required class="input-field pr-12">
+              <button type="button" @click="showPassword = !showPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                <Eye v-if="!showPassword" class="w-5 h-5" />
+                <EyeOff v-else class="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -68,15 +74,18 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
-import { Utensils, LogIn, Loader2 } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
+import { LogIn, Loader2, Eye, EyeOff } from 'lucide-vue-next'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 const email = ref('')
 const password = ref('')
 const isLoading = ref(false)
 const errorMsg = ref('')
+const showPassword = ref(false)
 
 const handleLogin = async () => {
   isLoading.value = true
@@ -101,12 +110,12 @@ const handleGoogle = async () => {
 
 const handleForgotPassword = async () => {
   if (!email.value) {
-    errorMsg.value = "Please enter your email first to reset password."
+    errorMsg.value = t('auth.enterEmailReset')
     return
   }
   try {
     await authStore.resetPassword(email.value)
-    alert("Password reset email sent! Check your inbox.")
+    alert(t('auth.resetEmailSent'))
   } catch (error) {
     errorMsg.value = error.message
   }

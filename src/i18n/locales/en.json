@@ -27,7 +27,9 @@
     "creatingAccount": "Creating account...",
     "hasAccount": "Already have an account?",
     "signIn2": "Sign in",
-    "signupSuccess": "Registration successful! Redirecting..."
+    "signupSuccess": "Registration successful! Redirecting...",
+    "enterEmailReset": "Please enter your email first to reset password.",
+    "resetEmailSent": "Password reset email sent! Check your inbox."
   },
   "home": {
     "dashboard": "Dashboard",

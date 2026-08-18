@@ -30,7 +30,13 @@
           </div>
           <div>
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{{ $t('auth.password') }}</label>
-            <input v-model="password" type="password" required class="input-field">
+            <div class="relative">
+              <input v-model="password" :type="showPassword ? 'text' : 'password'" required class="input-field pr-12">
+              <button type="button" @click="showPassword = !showPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                <Eye v-if="!showPassword" class="w-5 h-5" />
+                <EyeOff v-else class="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -55,7 +61,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
-import { Utensils, UserPlus, Loader2 } from 'lucide-vue-next'
+import { UserPlus, Loader2, Eye, EyeOff } from 'lucide-vue-next'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -66,6 +72,7 @@ const password = ref('')
 const isLoading = ref(false)
 const errorMsg = ref('')
 const successMsg = ref('')
+const showPassword = ref(false)
 
 const handleSignup = async () => {
   isLoading.value = true
