@@ -131,7 +131,8 @@ const handleUploadAvatar = async (event) => {
   if (!file) return
   try {
     const fileExt = file.name.split('.').pop()
-    const fileName = `${authStore.user.id}_avatar_${Date.now()}.${fileExt}`
+    const fileName = `${authStore.user.id}/avatar_${Date.now()}.${fileExt}`
+    
     const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, file, { upsert: true })
     if (uploadError) throw uploadError
     
