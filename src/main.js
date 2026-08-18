@@ -4,6 +4,7 @@ import router from './router'
 import i18n from './i18n'
 import './style.css'
 import 'aos/dist/aos.css'
+import { inject } from '@vercel/speed-insights'
 import AOS from 'aos'
 import VueApexCharts from 'vue3-apexcharts'
 import App from './App.vue'
@@ -14,6 +15,8 @@ app.use(createPinia()) // เปิดใช้งานระบบจัดก
 app.use(router)        // เปิดใช้งานระบบเปลี่ยนหน้าเว็บ
 app.use(i18n)          // เปิดใช้งานระบบหลายภาษา
 app.use(VueApexCharts) // เปิดใช้งานระบบกราฟ
+
+inject() // เปิดใช้งาน Vercel Speed Insights
 
 app.mount('#app')
 
