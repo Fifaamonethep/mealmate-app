@@ -9,17 +9,17 @@ export default {
     extend: {
       colors: {
         primary: {
-          50: '#f0fdfa',
-          100: '#ccfbf1',
-          200: '#99f6e4',
-          300: '#5eead4',
-          400: '#2dd4bf',
-          500: '#14b8a6', // Teal from logo
-          600: '#0d9488',
-          700: '#0f766e',
-          800: '#115e59',
-          900: '#134e4a',
-          950: '#042f2e',
+          50: '#eff8f4',
+          100: '#d6eee4',
+          200: '#afdfcf',
+          300: '#7cc9b1',
+          400: '#43bb8e', // Logo primary
+          500: '#35a076', // Hover / Darker
+          600: '#25825d',
+          700: '#20684c',
+          800: '#1b533e',
+          900: '#174434',
+          950: '#0d271e',
         },
         accent: {
           50: '#fff7ed',
