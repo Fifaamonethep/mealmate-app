@@ -1,116 +1,178 @@
 <template>
-  <div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-3xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6 pb-24 relative overflow-hidden min-h-screen">
+    
+    <!-- Background Decorative Elements -->
+    <div class="fixed bottom-0 left-0 right-0 h-64 z-[-1] opacity-20 pointer-events-none overflow-hidden">
+      <div class="absolute -bottom-20 left-1/2 transform -translate-x-1/2 w-[120%] h-64 bg-gradient-to-t from-red-500/30 via-yellow-500/20 to-transparent rounded-[100%] blur-3xl"></div>
+    </div>
+
     <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4 animate-fade-in">
-      <div>
-        <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">{{ $t('home.dashboard') }}</h1>
-        <p class="mt-1 text-gray-500 dark:text-gray-400">{{ $t('home.welcomeBack') }} <span class="font-bold text-primary-600 dark:text-primary-400">{{ authStore.user?.fullName || 'User' }}</span>!</p>
+    <div class="flex items-center justify-between animate-fade-in">
+      <div class="flex items-center space-x-3">
+        <div class="w-12 h-12 rounded-full overflow-hidden bg-primary-200 dark:bg-primary-900/30 border border-primary-100 dark:border-primary-800 flex items-center justify-center flex-shrink-0">
+          <img v-if="authStore.user?.avatarUrl" :src="authStore.user.avatarUrl" class="w-full h-full object-cover">
+          <span v-else class="text-primary-700 dark:text-primary-400 font-bold text-lg">{{ authStore.user?.fullName?.charAt(0) || 'U' }}</span>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Hello 👋</p>
+          <h1 class="text-xl font-bold text-gray-900 dark:text-white leading-tight">{{ authStore.user?.fullName || 'User' }}</h1>
+        </div>
       </div>
+      <router-link to="/add-meal" class="bg-primary-500 hover:bg-primary-600 text-white rounded-2xl px-5 py-2.5 font-bold shadow-lg shadow-primary-500/20 transition-transform active:scale-95 flex items-center text-sm">
+        <Plus class="w-4 h-4 mr-1.5" /> Meals
+      </router-link>
     </div>
 
-    <!-- Quick Guide (Onboarding) -->
-    <div v-if="showGuide" class="mb-8 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-3xl p-6 relative animate-fade-in">
-      <button @click="showGuide = false" class="absolute top-4 right-4 text-blue-400 hover:text-blue-600 dark:hover:text-blue-200">
-        <X class="w-5 h-5" />
-      </button>
-      <div class="flex items-center space-x-3 mb-4">
-        <Info class="w-6 h-6 text-blue-600 dark:text-blue-400" />
-        <h2 class="text-lg font-bold text-blue-900 dark:text-blue-100">Quick Guide: How to use MealMate</h2>
+    <!-- Net Balance Card -->
+    <div class="bg-gray-50 dark:bg-[#0f172a]/90 backdrop-blur-xl border border-gray-200 dark:border-gray-800 rounded-[2rem] p-6 shadow-sm animate-slide-up relative overflow-hidden">
+      
+      <!-- Top Row -->
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center space-x-2 text-sm font-bold text-gray-500 dark:text-gray-400">
+          <Wallet class="w-4 h-4" />
+          <span>Net Balance</span>
+        </div>
+        <Sparkles class="w-5 h-5 text-yellow-500" />
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800 dark:text-blue-200">
-        <div class="flex items-start space-x-2">
-          <PlusCircle class="w-5 h-5 flex-shrink-0 mt-0.5 text-blue-500" />
-          <p><strong>The + Button (Bottom Right):</strong> This is your main action menu. Click it to quickly Add an Expense, Add a Friend, or Create a Group.</p>
-        </div>
-        <div class="flex items-start space-x-2">
-          <Users class="w-5 h-5 flex-shrink-0 mt-0.5 text-blue-500" />
-          <p><strong>Groups & Friends:</strong> Before splitting a bill, add your friends in the <strong>Friends</strong> tab, then create a <strong>Group</strong> for your trip or dinner.</p>
-        </div>
-        <div class="flex items-start space-x-2">
-          <Wallet class="w-5 h-5 flex-shrink-0 mt-0.5 text-blue-500" />
-          <p><strong>Debts Tab:</strong> Check who you owe and who owes you. You can upload payment slips here to settle debts!</p>
-        </div>
-        <div class="flex items-start space-x-2">
-          <UserIcon class="w-5 h-5 flex-shrink-0 mt-0.5 text-blue-500" />
-          <p><strong>Profile:</strong> Update your name, change your password, set your Avatar, and upload your personal QR code for receiving money.</p>
-        </div>
-      </div>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-      <!-- Owed Card -->
-      <div class="relative overflow-hidden bg-gradient-to-br from-emerald-500 to-green-600 rounded-3xl p-6 shadow-lg shadow-green-500/20 text-white group animate-slide-up">
-        <div class="absolute -right-6 -top-6 bg-white/10 w-32 h-32 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-        <div class="absolute -left-4 -bottom-4 bg-white/10 w-24 h-24 rounded-full blur-xl"></div>
-        <div class="relative z-10">
-          <div class="flex items-center justify-between mb-4">
-            <span class="text-green-50 font-medium tracking-wide uppercase text-sm">{{ $t('home.youAreOwed') }}</span>
-            <div class="p-2 bg-white/20 rounded-xl backdrop-blur-sm"><ArrowUpRight class="w-5 h-5 text-white" /></div>
+
+      <!-- Big Amount -->
+      <h2 :class="['text-4xl font-black tracking-tight mb-6', debtsStore.myNetBalance >= 0 ? 'text-green-500' : 'text-red-500']">
+        {{ debtsStore.myNetBalance > 0 ? '+' : '' }}{{ debtsStore.myNetBalance.toLocaleString() }} LAK
+      </h2>
+
+      <!-- Sub Cards -->
+      <div class="flex space-x-4">
+        <!-- I Owe -->
+        <div class="flex-1 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-2xl p-4 transition-transform hover:scale-[1.02]">
+          <div class="flex items-center text-red-500 mb-1">
+            <ArrowDownLeft class="w-4 h-4 mr-1.5" />
+            <span class="text-xs font-bold uppercase tracking-wider">I Owe</span>
           </div>
-          <h2 class="text-4xl font-black">1,500 <span class="text-2xl font-bold opacity-80">฿</span></h2>
+          <p class="text-lg font-bold text-red-600 dark:text-red-400">{{ debtsStore.iOweTotal.toLocaleString() }} LAK</p>
         </div>
-      </div>
-
-      <!-- Owe Card -->
-      <div class="relative overflow-hidden bg-gradient-to-br from-rose-500 to-red-600 rounded-3xl p-6 shadow-lg shadow-red-500/20 text-white group animate-slide-up stagger-2">
-        <div class="absolute -right-6 -top-6 bg-white/10 w-32 h-32 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-        <div class="absolute -left-4 -bottom-4 bg-white/10 w-24 h-24 rounded-full blur-xl"></div>
-        <div class="relative z-10">
-          <div class="flex items-center justify-between mb-4">
-            <span class="text-red-50 font-medium tracking-wide uppercase text-sm">{{ $t('home.youOwe') }}</span>
-            <div class="p-2 bg-white/20 rounded-xl backdrop-blur-sm"><ArrowDownRight class="w-5 h-5 text-white" /></div>
-          </div>
-          <h2 class="text-4xl font-black">300 <span class="text-2xl font-bold opacity-80">฿</span></h2>
-        </div>
-      </div>
-    </div>
-
-    <!-- Recent Activity -->
-    <div class="animate-slide-up stagger-3">
-      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">{{ $t('home.recentActivity') }}</h3>
-      <div class="card p-2">
         
-        <!-- Activity Item 1 -->
-        <div class="flex items-center justify-between p-4 hover:bg-primary-50/50 dark:hover:bg-primary-900/10 rounded-2xl transition-all duration-200 cursor-default group">
-          <div class="flex items-center space-x-4">
-            <div class="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Utensils class="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div>
-              <p class="font-bold text-gray-900 dark:text-white">Friday Sushi Dinner</p>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Added by Alice • 2 hours ago</p>
-            </div>
+        <!-- Owed to Me -->
+        <div class="flex-1 bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30 rounded-2xl p-4 transition-transform hover:scale-[1.02]">
+          <div class="flex items-center text-green-500 mb-1">
+            <ArrowUpRight class="w-4 h-4 mr-1.5" />
+            <span class="text-xs font-bold uppercase tracking-wider">Owed to Me</span>
           </div>
-          <div class="text-right">
-            <span class="font-bold text-red-500">- 300 ฿</span>
+          <p class="text-lg font-bold text-green-600 dark:text-green-400">{{ debtsStore.owedToMeTotal.toLocaleString() }} LAK</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity Section -->
+    <div class="animate-slide-up stagger-2 pt-2">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-bold text-gray-900 dark:text-white flex items-center">
+          <Utensils class="w-4 h-4 mr-2 text-gray-400" /> Recent Activity
+        </h3>
+        <router-link to="/meals" class="text-xs font-bold text-primary-500 flex items-center hover:text-primary-600 transition-colors">
+          View All <ArrowRight class="w-3 h-3 ml-1" />
+        </router-link>
+      </div>
+
+      <!-- Empty State -->
+      <div v-if="recentMeals.length === 0" class="text-center py-8 text-gray-500">
+        No recent activity yet.
+      </div>
+
+      <!-- Meal Cards -->
+      <div v-for="meal in recentMeals" :key="meal.id" class="mb-4 bg-white/80 dark:bg-[#0f172a]/90 backdrop-blur-xl border border-gray-200 dark:border-gray-800 rounded-[2rem] p-5 shadow-sm hover:shadow-md transition-shadow">
+        
+        <!-- Receipt Image Box -->
+        <div class="w-full h-32 sm:h-40 bg-gray-100 dark:bg-gray-800 rounded-2xl mb-4 overflow-hidden relative border border-gray-200 dark:border-gray-700">
+          <img v-if="meal.receipt_url" :src="meal.receipt_url" class="w-full h-full object-cover opacity-80" alt="Receipt">
+          <div v-else class="w-full h-full flex items-center justify-center text-gray-400">
+             <Receipt class="w-8 h-8 opacity-50" />
+          </div>
+
+          <!-- Group Pill Overlay -->
+          <div v-if="meal.group_name" class="absolute top-3 right-3 bg-gray-900/80 backdrop-blur-md text-white px-3 py-1.5 rounded-full flex items-center space-x-2 shadow-lg border border-white/10">
+            <div class="w-5 h-5 rounded-full overflow-hidden bg-gray-700">
+               <Users class="w-3 h-3 m-1 text-gray-300" />
+            </div>
+            <span class="text-xs font-bold">{{ meal.group_name }}</span>
           </div>
         </div>
 
-        <!-- Activity Item 2 -->
-        <div class="flex items-center justify-between p-4 hover:bg-primary-50/50 dark:hover:bg-primary-900/10 rounded-2xl transition-all duration-200 cursor-default group">
-          <div class="flex items-center space-x-4">
-            <div class="w-12 h-12 rounded-2xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Wallet class="w-6 h-6 text-green-600 dark:text-green-400" />
-            </div>
-            <div>
-              <p class="font-bold text-gray-900 dark:text-white">Charlie paid you</p>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Debt Settled • 1 day ago</p>
-            </div>
+        <!-- Meal Details -->
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <h3 class="text-lg font-bold text-primary-500 mb-1">{{ meal.title }}</h3>
+            <p class="text-2xl font-black text-green-600 dark:text-green-500 tracking-tight">{{ meal.total_cost.toLocaleString() }} {{ meal.currency }}</p>
           </div>
-          <div class="text-right">
-            <span class="font-bold text-green-500">+ 500 ฿</span>
+          <span class="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs font-bold rounded-lg border border-gray-200 dark:border-gray-700">
+            {{ meal.split_method }}
+          </span>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-800/50">
+          <div class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+            <div class="w-6 h-6 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 border border-white dark:border-gray-800">
+               <img v-if="meal.payer_avatar" :src="meal.payer_avatar" class="w-full h-full object-cover">
+               <User v-else class="w-4 h-4 text-gray-400 m-1" />
+            </div>
+            <span class="font-medium">Paid By <span class="font-bold text-gray-900 dark:text-gray-200">{{ meal.payer_name || 'Admin' }}</span></span>
+          </div>
+          <div class="flex items-center text-xs text-gray-500 dark:text-gray-500 font-medium">
+            <Calendar class="w-3 h-3 mr-1" />
+            {{ formatDate(meal.created_at) }}
           </div>
         </div>
 
       </div>
+
     </div>
+
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { ArrowUpRight, ArrowDownRight, Utensils, Wallet, X, Info, PlusCircle, Users, User as UserIcon } from 'lucide-vue-next'
+import { onMounted, ref } from 'vue'
 import { useAuthStore } from '../stores/authStore'
+import { useDebtsStore } from '../stores/debts'
+import { supabase } from '../lib/supabase'
+import { Wallet, Sparkles, ArrowDownLeft, ArrowUpRight, Plus, Utensils, ArrowRight, Calendar } from 'lucide-vue-next'
 
 const authStore = useAuthStore()
-const showGuide = ref(true)
+const debtsStore = useDebtsStore()
+const recentMeals = ref([])
+
+onMounted(async () => {
+  debtsStore.fetchSettlements()
+  
+  try {
+    const { data: realMeals } = await supabase
+      .from('meals')
+      .select('*, profiles:payer_id(full_name, avatar_url), groups(name)')
+      .order('created_at', { ascending: false })
+      .limit(3)
+    
+    if (realMeals) {
+       recentMeals.value = realMeals.map(m => ({
+        id: m.id,
+        title: m.title,
+        total_cost: parseFloat(m.total_cost),
+        currency: m.currency,
+        split_method: m.split_method === 'equal' ? 'Equal Split' : 'Custom Split',
+        group_name: m.groups?.name,
+        payer_name: m.profiles?.full_name,
+        payer_avatar: m.profiles?.avatar_url,
+        created_at: m.created_at,
+        receipt_url: m.receipt_url
+      }))
+    }
+  } catch (e) {
+     console.error(e)
+  }
+})
+
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const d = new Date(dateString)
+  return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`
+}
 </script>

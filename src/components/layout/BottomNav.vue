@@ -1,43 +1,54 @@
 <template>
-  <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-t border-gray-200/50 dark:border-gray-800/50 pb-safe z-40">
-    <div class="flex justify-around items-center h-16 px-2">
-      <router-link to="/" class="flex flex-col items-center justify-center w-16 h-full text-gray-500 hover:text-primary-500 dark:hover:text-primary-400 transition-colors" exact-active-class="text-primary-600 dark:text-primary-400 font-bold">
-        <Home class="w-6 h-6 mb-1" />
-        <span class="text-[10px]">{{ $t('nav.home') || 'Home' }}</span>
+  <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-[#0B1120]/95 backdrop-blur-xl border-t border-gray-200 dark:border-gray-800/50 pb-safe z-40">
+    <div class="flex justify-around items-end h-16 px-2 pb-2 relative">
+      
+      <router-link to="/meals" class="nav-btn flex flex-col items-center justify-center w-14 h-12 rounded-xl text-gray-500 hover:text-primary-500 transition-all active:scale-90 active:bg-primary-50 dark:active:bg-primary-900/30" active-class="bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-bold">
+        <Receipt class="w-5 h-5 mb-0.5" />
+        <span class="text-[10px]">Meals</span>
+      </router-link>
+
+      <router-link to="/groups" class="nav-btn flex flex-col items-center justify-center w-14 h-12 rounded-xl text-gray-500 hover:text-primary-500 transition-all active:scale-90 active:bg-primary-50 dark:active:bg-primary-900/30" active-class="bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-bold">
+        <Users class="w-5 h-5 mb-0.5" />
+        <span class="text-[10px]">Groups</span>
+      </router-link>
+
+      <!-- Center Prominent Dashboard -->
+      <router-link to="/" class="relative -top-5 flex flex-col items-center justify-center w-16 h-16 rounded-full bg-primary-500 text-white shadow-[0_8px_20px_rgba(168,85,247,0.4)] hover:bg-primary-600 transition-all active:scale-90 active:translate-y-2 border-4 border-white dark:border-[#0f172a] group" active-class="bg-primary-600 ring-4 ring-primary-500/30">
+        <LayoutGrid class="w-6 h-6 group-hover:animate-bounce-short" />
+      </router-link>
+
+      <router-link to="/debts" class="nav-btn flex flex-col items-center justify-center w-14 h-12 rounded-xl text-gray-500 hover:text-primary-500 transition-all active:scale-90 active:bg-primary-50 dark:active:bg-primary-900/30" active-class="bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-bold">
+        <CreditCard class="w-5 h-5 mb-0.5" />
+        <span class="text-[10px]">Debts</span>
+      </router-link>
+
+      <router-link to="/friends" class="nav-btn flex flex-col items-center justify-center w-14 h-12 rounded-xl text-gray-500 hover:text-primary-500 transition-all active:scale-90 active:bg-primary-50 dark:active:bg-primary-900/30" active-class="bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-bold">
+        <User class="w-5 h-5 mb-0.5" />
+        <span class="text-[10px]">Friends</span>
       </router-link>
       
-      <router-link to="/groups" class="flex flex-col items-center justify-center w-16 h-full text-gray-500 hover:text-primary-500 dark:hover:text-primary-400 transition-colors" active-class="text-primary-600 dark:text-primary-400 font-bold">
-        <Users class="w-6 h-6 mb-1" />
-        <span class="text-[10px]">{{ $t('nav.groups') || 'Groups' }}</span>
-      </router-link>
-
-      <!-- Centered FAB -->
-      <div class="relative w-16 h-full flex justify-center">
-        <router-link to="/add-meal" class="absolute -top-6 bg-primary-500 hover:bg-primary-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-[0_8px_30px_rgba(16,185,129,0.5)] transform transition-transform hover:scale-105 active:scale-95 border-4 border-[#F8FAFC] dark:border-[#0B1120]">
-          <Plus class="w-7 h-7" />
-        </router-link>
-      </div>
-
-      <router-link to="/debts" class="flex flex-col items-center justify-center w-16 h-full text-gray-500 hover:text-primary-500 dark:hover:text-primary-400 transition-colors" active-class="text-primary-600 dark:text-primary-400 font-bold">
-        <Wallet class="w-6 h-6 mb-1" />
-        <span class="text-[10px]">{{ $t('nav.debts') || 'Debts' }}</span>
-      </router-link>
-
-      <router-link to="/profile" class="flex flex-col items-center justify-center w-16 h-full text-gray-500 hover:text-primary-500 dark:hover:text-primary-400 transition-colors" active-class="text-primary-600 dark:text-primary-400 font-bold">
-        <User class="w-6 h-6 mb-1" />
-        <span class="text-[10px]">{{ $t('nav.profile') || 'Profile' }}</span>
-      </router-link>
     </div>
   </div>
 </template>
 
 <script setup>
-import { Home, Users, Wallet, User, Plus } from 'lucide-vue-next'
+import { LayoutGrid, Receipt, CreditCard, Users, User } from 'lucide-vue-next'
 </script>
 
 <style scoped>
-/* Safe area for iOS devices */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+.nav-btn.router-link-active {
+  transform: translateY(-2px);
+}
+
+@keyframes bounce-short {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+.animate-bounce-short {
+  animation: bounce-short 0.4s ease-in-out;
 }
 </style>

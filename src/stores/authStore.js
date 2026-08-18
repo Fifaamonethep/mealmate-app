@@ -4,24 +4,61 @@ import { supabase } from '../lib/supabase'
 
 export const useAuthStore = defineStore('authStore', () => {
   const user = ref(null)
-  const isInitialized = ref(false)
+  const onlineUsers = ref(new Set())
+  let presenceChannel = null
+
+  const initializePresence = (userId) => {
+    if (presenceChannel) {
+      supabase.removeChannel(presenceChannel)
+    }
+    
+    presenceChannel = supabase.channel('online-users', {
+      config: { presence: { key: userId } },
+    })
+
+    presenceChannel
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState()
+        onlineUsers.value = new Set(Object.keys(state))
+      })
+      .on('presence', { event: 'join' }, ({ key }) => {
+        onlineUsers.value.add(key)
+        onlineUsers.value = new Set(onlineUsers.value) // trigger reactivity
+      })
+      .on('presence', { event: 'leave' }, ({ key }) => {
+        onlineUsers.value.delete(key)
+        onlineUsers.value = new Set(onlineUsers.value)
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({ online_at: new Date().toISOString() })
+        }
+      })
+  }
 
   const initializeAuth = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (session) {
         await fetchProfile(session.user.id)
+        initializePresence(session.user.id)
       }
     } catch (err) {
       console.error('Error getting session:', err)
     }
     
-    // Listen for auth state changes (Google OAuth redirect fires SIGNED_IN here)
+    // Listen for auth state changes
     supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
         await fetchProfile(session.user.id)
+        initializePresence(session.user.id)
       } else if (event === 'SIGNED_OUT') {
         user.value = null
+        if (presenceChannel) {
+          supabase.removeChannel(presenceChannel)
+          presenceChannel = null
+        }
+        onlineUsers.value = new Set()
       }
     })
     
@@ -45,7 +82,7 @@ export const useAuthStore = defineStore('authStore', () => {
           role: data.role || 'user'
         }
       } else if (error && (error.code === 'PGRST116' || error.code === '406')) {
-        // Profile doesn't exist yet (first Google login). Auto-create it.
+        // Profile doesn't exist yet
         const { data: { user: authUser } } = await supabase.auth.getUser()
         if (authUser) {
           const newProfile = {
@@ -83,6 +120,7 @@ export const useAuthStore = defineStore('authStore', () => {
         username: email.split('@')[0]
       })
       await fetchProfile(data.user.id)
+      initializePresence(data.user.id)
     }
     return data
   }
@@ -92,6 +130,7 @@ export const useAuthStore = defineStore('authStore', () => {
     if (error) throw error
     if (data.user) {
       await fetchProfile(data.user.id)
+      initializePresence(data.user.id)
     }
     return data
   }
@@ -122,6 +161,7 @@ export const useAuthStore = defineStore('authStore', () => {
   return { 
     user, 
     isInitialized, 
+    onlineUsers,
     initializeAuth, 
     signUp, 
     loginWithPassword, 
