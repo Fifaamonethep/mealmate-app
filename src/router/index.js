@@ -8,7 +8,7 @@ const routes = [
     { path: '/friends', name: 'Friends', component: () => import('../views/FriendsView.vue'), meta: { requiresAuth: true } },
     { path: '/groups', name: 'Groups', component: () => import('../views/GroupsView.vue'), meta: { requiresAuth: true } },
     { path: '/debts', name: 'Debts', component: () => import('../views/DebtsView.vue'), meta: { requiresAuth: true } },
-    { path: '/admin', name: 'Admin', component: () => import('../views/AdminView.vue'), meta: { requiresAuth: true } },
+    { path: '/admin', name: 'Admin', component: () => import('../views/AdminView.vue'), meta: { requiresAuth: true, requiresAdmin: true } },
     { path: '/add-meal', name: 'AddMeal', component: () => import('../views/AddMealView.vue'), meta: { requiresAuth: true } },
     { path: '/profile', name: 'Profile', component: () => import('../views/ProfileView.vue'), meta: { requiresAuth: true } }
 ]
@@ -43,6 +43,10 @@ router.beforeEach(async (to) => {
     if (to.meta.requiresAuth && !isLoggedIn) {
         return '/login'
     } else if (to.meta.guestOnly && isLoggedIn) {
+        return '/'
+    }
+
+    if (to.meta.requiresAdmin && authStore.user?.role !== 'admin') {
         return '/'
     }
     // implicitly returns undefined = allow navigation

@@ -8,7 +8,34 @@
       </div>
     </div>
 
-    <!-- Balance Cards -->
+    <!-- Quick Guide (Onboarding) -->
+    <div v-if="showGuide" class="mb-8 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-3xl p-6 relative animate-fade-in">
+      <button @click="showGuide = false" class="absolute top-4 right-4 text-blue-400 hover:text-blue-600 dark:hover:text-blue-200">
+        <X class="w-5 h-5" />
+      </button>
+      <div class="flex items-center space-x-3 mb-4">
+        <Info class="w-6 h-6 text-blue-600 dark:text-blue-400" />
+        <h2 class="text-lg font-bold text-blue-900 dark:text-blue-100">Quick Guide: How to use MealMate</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800 dark:text-blue-200">
+        <div class="flex items-start space-x-2">
+          <PlusCircle class="w-5 h-5 flex-shrink-0 mt-0.5 text-blue-500" />
+          <p><strong>The + Button (Bottom Right):</strong> This is your main action menu. Click it to quickly Add an Expense, Add a Friend, or Create a Group.</p>
+        </div>
+        <div class="flex items-start space-x-2">
+          <Users class="w-5 h-5 flex-shrink-0 mt-0.5 text-blue-500" />
+          <p><strong>Groups & Friends:</strong> Before splitting a bill, add your friends in the <strong>Friends</strong> tab, then create a <strong>Group</strong> for your trip or dinner.</p>
+        </div>
+        <div class="flex items-start space-x-2">
+          <Wallet class="w-5 h-5 flex-shrink-0 mt-0.5 text-blue-500" />
+          <p><strong>Debts Tab:</strong> Check who you owe and who owes you. You can upload payment slips here to settle debts!</p>
+        </div>
+        <div class="flex items-start space-x-2">
+          <UserIcon class="w-5 h-5 flex-shrink-0 mt-0.5 text-blue-500" />
+          <p><strong>Profile:</strong> Update your name, change your password, set your Avatar, and upload your personal QR code for receiving money.</p>
+        </div>
+      </div>
+    </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
       <!-- Owed Card -->
       <div class="relative overflow-hidden bg-gradient-to-br from-emerald-500 to-green-600 rounded-3xl p-6 shadow-lg shadow-green-500/20 text-white group animate-slide-up">
@@ -80,8 +107,10 @@
 </template>
 
 <script setup>
-import { ArrowUpRight, ArrowDownRight, Utensils, Wallet } from 'lucide-vue-next'
+import { ref } from 'vue'
+import { ArrowUpRight, ArrowDownRight, Utensils, Wallet, X, Info, PlusCircle, Users, User as UserIcon } from 'lucide-vue-next'
 import { useAuthStore } from '../stores/authStore'
 
 const authStore = useAuthStore()
+const showGuide = ref(true)
 </script>

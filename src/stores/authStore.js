@@ -41,7 +41,8 @@ export const useAuthStore = defineStore('authStore', () => {
           id: data.id,
           username: data.username,
           fullName: data.full_name,
-          avatarUrl: data.avatar_url
+          avatarUrl: data.avatar_url,
+          role: data.role || 'user'
         }
       } else if (error && (error.code === 'PGRST116' || error.code === '406')) {
         // Profile doesn't exist yet (first Google login). Auto-create it.
@@ -51,7 +52,8 @@ export const useAuthStore = defineStore('authStore', () => {
             id: authUser.id,
             full_name: authUser.user_metadata?.full_name || authUser.user_metadata?.name || 'New User',
             username: authUser.email?.split('@')[0] || `user_${Date.now()}`,
-            avatar_url: authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || ''
+            avatar_url: authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || '',
+            role: 'user'
           }
           
           await supabase.from('profiles').insert(newProfile)
@@ -60,7 +62,8 @@ export const useAuthStore = defineStore('authStore', () => {
             id: newProfile.id,
             username: newProfile.username,
             fullName: newProfile.full_name,
-            avatarUrl: newProfile.avatar_url
+            avatarUrl: newProfile.avatar_url,
+            role: newProfile.role
           }
         }
       }
@@ -109,6 +112,13 @@ export const useAuthStore = defineStore('authStore', () => {
     user.value = null
   }
 
+  const resetPassword = async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/profile`,
+    })
+    if (error) throw error
+  }
+
   return { 
     user, 
     isInitialized, 
@@ -116,6 +126,7 @@ export const useAuthStore = defineStore('authStore', () => {
     signUp, 
     loginWithPassword, 
     loginWithGoogle, 
-    logout 
+    logout,
+    resetPassword
   }
 })

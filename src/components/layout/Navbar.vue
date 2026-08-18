@@ -66,13 +66,18 @@ const router = useRouter()
 const currentLang = ref(appStore.currentLang)
 const isDark = ref(appStore.isDark)
 
-const navLinks = computed(() => [
-  { path: '/', label: t('nav.home') },
-  { path: '/friends', label: t('nav.friends') },
-  { path: '/groups', label: t('nav.groups') },
-  { path: '/debts', label: t('nav.debts') },
-  { path: '/admin', label: t('nav.admin') },
-])
+const navLinks = computed(() => {
+  const links = [
+    { path: '/', label: t('nav.home') },
+    { path: '/friends', label: t('nav.friends') },
+    { path: '/groups', label: t('nav.groups') },
+    { path: '/debts', label: t('nav.debts') },
+  ]
+  if (authStore.user?.role === 'admin') {
+    links.push({ path: '/admin', label: t('nav.admin') })
+  }
+  return links
+})
 
 const changeLang = (lang) => {
   currentLang.value = lang

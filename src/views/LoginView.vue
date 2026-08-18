@@ -21,7 +21,10 @@
             <input v-model="email" type="email" required class="input-field">
           </div>
           <div>
-            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{{ $t('auth.password') }}</label>
+            <div class="flex justify-between mb-1">
+              <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">{{ $t('auth.password') }}</label>
+              <button type="button" @click="handleForgotPassword" class="text-xs font-bold text-primary-600 hover:text-primary-500 transition-colors">Forgot Password?</button>
+            </div>
             <input v-model="password" type="password" required class="input-field">
           </div>
         </div>
@@ -91,6 +94,19 @@ const handleLogin = async () => {
 const handleGoogle = async () => {
   try {
     await authStore.loginWithGoogle()
+  } catch (error) {
+    errorMsg.value = error.message
+  }
+}
+
+const handleForgotPassword = async () => {
+  if (!email.value) {
+    errorMsg.value = "Please enter your email first to reset password."
+    return
+  }
+  try {
+    await authStore.resetPassword(email.value)
+    alert("Password reset email sent! Check your inbox.")
   } catch (error) {
     errorMsg.value = error.message
   }
