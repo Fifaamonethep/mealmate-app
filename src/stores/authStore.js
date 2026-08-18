@@ -38,6 +38,28 @@ export const useAuthStore = defineStore('authStore', () => {
         fullName: data.full_name,
         avatarUrl: data.avatar_url
       }
+    } else if (error && error.code === 'PGRST116') {
+      // Profile not found. This happens on first Google Login. Let's auto-create it.
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      if (authUser) {
+        await supabase.from('profiles').insert({
+          id: authUser.id,
+          full_name: authUser.user_metadata?.full_name || 'New User',
+          username: authUser.email?.split('@')[0] || `user_${Math.floor(Math.random()*10000)}`,
+          avatar_url: authUser.user_metadata?.avatar_url || ''
+        })
+        
+        // Retry fetch
+        const { data: newProfile } = await supabase.from('profiles').select('*').eq('id', userId).single()
+        if (newProfile) {
+          user.value = {
+            id: newProfile.id,
+            username: newProfile.username,
+            fullName: newProfile.full_name,
+            avatarUrl: newProfile.avatar_url
+          }
+        }
+      }
     }
   }
 
