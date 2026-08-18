@@ -2,9 +2,9 @@
   <div class="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8 card p-8 animate-scale-in">
       
-      <div class="text-center">
-        <div class="w-16 h-16 bg-primary-500 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-primary-500/30 animate-float">
-          <Utensils class="h-8 w-8 text-white" />
+      <div class="text-center" data-aos="fade-down">
+        <div class="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-primary-500/20 animate-float overflow-hidden border border-gray-100 dark:border-gray-800 p-1">
+          <img src="@/assets/mealmate_logo.png" alt="MealMate Logo" class="w-full h-full object-cover rounded-xl" />
         </div>
         <h2 class="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">{{ $t('auth.createAccount') }}</h2>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{{ $t('auth.createSubtitle') }}</p>
@@ -18,7 +18,7 @@
         {{ successMsg }}
       </div>
 
-      <form class="mt-8 space-y-6" @submit.prevent="handleSignup">
+      <form class="mt-8 space-y-6" @submit.prevent="handleSignup" data-aos="fade-up" data-aos-delay="100">
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{{ $t('auth.fullName') }}</label>
@@ -43,7 +43,7 @@
         </div>
       </form>
 
-      <p class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+      <p class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400" data-aos="fade-up" data-aos-delay="200">
         {{ $t('auth.hasAccount') }}
         <router-link to="/login" class="font-bold text-primary-600 hover:text-primary-500 transition-colors">{{ $t('auth.signIn2') }}</router-link>
       </p>
