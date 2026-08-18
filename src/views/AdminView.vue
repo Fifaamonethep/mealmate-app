@@ -144,25 +144,31 @@ onMounted(() => {
   fetchSlips()
 })
 
-const processSlip = async (slipId, action) => {
-  const slipIndex = pendingSlips.value.findIndex(s => s.id === slipId)
-  if (slipIndex === -1) return
-
-  // Optimistic UI Update
-  const removedSlip = pendingSlips.value.splice(slipIndex, 1)[0]
+const handleAction = async (slip, newStatus) => {
+  const previousStatus = slip.status
   
-    // In a real app: await fetch('/api/slips/confirm', { method: 'POST', body: ... })
-    // Success! No need to update UI, it's already updated.
-    
+  // Optimistic UI Update
+  slip.status = newStatus
+
+  try {
+    const { error } = await supabase
+      .from('slips')
+      .update({ status: newStatus })
+      .eq('id', slip.id)
+
+    if (error) throw error
+
+    showToast(`Slip ${newStatus === 'Confirmed' ? 'confirmed ✅' : 'rejected ❌'} successfully!`)
+
     // Remove from queue after brief display
     setTimeout(() => {
       pendingSlips.value = pendingSlips.value.filter(s => s.id !== slip.id)
     }, 1000)
 
   } catch (error) {
-    // 3. Rollback UI on Failure
+    // Rollback UI on Failure
     slip.status = previousStatus
-    showToast(`Failed to update slip ${slip.id}. Rolling back.`)
+    showToast(`Failed to update slip. Rolling back.`)
     console.error("Optimistic update failed:", error)
   }
 }
