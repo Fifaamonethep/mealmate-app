@@ -7,44 +7,73 @@
           <img src="@/assets/mealmate_logo.png" alt="MealMate Logo" class="w-full h-full object-cover rounded-xl" />
         </div>
         <h2 class="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">{{ $t('auth.welcome') }}</h2>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{{ $t('auth.signInSubtitle') }}</p>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          {{ step === 1 ? $t('auth.signInSubtitle') : $t('auth.enterOtpSubtitle') }}
+        </p>
       </div>
 
       <div v-if="errorMsg" class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-xl text-sm font-medium border border-red-200 dark:border-red-800 animate-slide-down">
         {{ errorMsg }}
       </div>
+      
+      <div v-if="successMsg" class="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 p-4 rounded-xl text-sm font-medium border border-green-200 dark:border-green-800 animate-slide-down">
+        {{ successMsg }}
+      </div>
 
-      <form class="mt-8 space-y-6" @submit.prevent="handleLogin" data-aos="fade-up" data-aos-delay="100">
+      <!-- Step 1: Email Input -->
+      <form v-if="step === 1" class="mt-8 space-y-6" @submit.prevent="handleSendOtp" data-aos="fade-up" data-aos-delay="100">
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{{ $t('auth.email') }}</label>
-            <input v-model="email" type="email" required class="input-field">
-          </div>
-          <div>
-            <div class="flex justify-between mb-1">
-              <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">{{ $t('auth.password') }}</label>
-              <button type="button" @click="handleForgotPassword" class="text-xs font-bold text-primary-600 hover:text-primary-500 transition-colors active:scale-95">Forgot Password?</button>
-            </div>
-            <div class="relative">
-              <input v-model="password" :type="showPassword ? 'text' : 'password'" required class="input-field pr-12">
-              <button type="button" @click="showPassword = !showPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                <Eye v-if="!showPassword" class="w-5 h-5" />
-                <EyeOff v-else class="w-5 h-5" />
-              </button>
-            </div>
+            <input v-model="email" type="email" required class="input-field" placeholder="you@example.com">
           </div>
         </div>
 
         <div>
           <button type="submit" :disabled="isLoading" class="btn-primary w-full flex justify-center items-center">
             <Loader2 v-if="isLoading" class="w-5 h-5 mr-2 animate-spin" />
-            <LogIn v-else class="w-5 h-5 mr-2" />
-            {{ isLoading ? $t('auth.signingIn') : $t('auth.signIn') }}
+            <Mail v-else class="w-5 h-5 mr-2" />
+            {{ isLoading ? $t('auth.sending') : $t('auth.sendOtp') }}
           </button>
         </div>
       </form>
 
-      <div class="mt-6" data-aos="fade-up" data-aos-delay="200">
+      <!-- Step 2: OTP Input -->
+      <form v-else class="mt-8 space-y-6" @submit.prevent="handleVerifyOtp" data-aos="fade-up">
+        <div class="space-y-4">
+          <div class="flex justify-between items-center mb-1">
+            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">{{ $t('auth.enterOtp') }}</label>
+            <button type="button" @click="step = 1; otp = ['', '', '', '', '', '']" class="text-xs font-bold text-primary-600 hover:text-primary-500 transition-colors active:scale-95">
+              {{ $t('auth.changeEmail') }}
+            </button>
+          </div>
+          
+          <div class="flex justify-between gap-2" dir="ltr">
+            <input 
+              v-for="(digit, index) in 6" :key="index"
+              :ref="el => otpRefs[index] = el"
+              v-model="otp[index]"
+              @input="handleOtpInput(index, $event)"
+              @keydown="handleOtpKeydown(index, $event)"
+              type="text" 
+              inputmode="numeric" 
+              maxlength="1"
+              class="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:border-primary-500 focus:ring-0 transition-all duration-200 outline-none"
+              :class="{ 'scale-[1.05] border-primary-500 shadow-sm text-primary-600 dark:text-primary-400': otp[index] }"
+            >
+          </div>
+        </div>
+
+        <div>
+          <button type="submit" :disabled="isLoading || otp.join('').length !== 6" class="btn-primary w-full flex justify-center items-center">
+            <Loader2 v-if="isLoading" class="w-5 h-5 mr-2 animate-spin" />
+            <LogIn v-else class="w-5 h-5 mr-2" />
+            {{ isLoading ? $t('auth.verifying') : $t('auth.verifyOtpBtn') }}
+          </button>
+        </div>
+      </form>
+
+      <div v-if="step === 1" class="mt-6" data-aos="fade-up" data-aos-delay="200">
         <div class="relative">
           <div class="absolute inset-0 flex items-center">
             <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
@@ -61,38 +90,42 @@
           </button>
         </div>
       </div>
-
-      <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400" data-aos="fade-up" data-aos-delay="300">
-        {{ $t('auth.noAccount') }}
-        <router-link to="/signup" class="font-bold text-primary-600 hover:text-primary-500 transition-colors">{{ $t('auth.signUp') }}</router-link>
-      </p>
+      
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import { useI18n } from 'vue-i18n'
-import { LogIn, Loader2, Eye, EyeOff } from 'lucide-vue-next'
+import { LogIn, Loader2, Mail } from 'lucide-vue-next'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const { t } = useI18n()
 
+const step = ref(1)
 const email = ref('')
-const password = ref('')
+const otp = ref(['', '', '', '', '', ''])
+const otpRefs = ref([])
 const isLoading = ref(false)
 const errorMsg = ref('')
-const showPassword = ref(false)
+const successMsg = ref('')
 
-const handleLogin = async () => {
+const handleSendOtp = async () => {
+  if (!email.value) return
   isLoading.value = true
   errorMsg.value = ''
+  successMsg.value = ''
   try {
-    await authStore.loginWithPassword(email.value, password.value)
-    router.push('/')
+    await authStore.loginWithOtp(email.value)
+    successMsg.value = t('auth.otpSent')
+    step.value = 2
+    nextTick(() => {
+      if (otpRefs.value[0]) otpRefs.value[0].focus()
+    })
   } catch (error) {
     errorMsg.value = error.message
   } finally {
@@ -100,22 +133,49 @@ const handleLogin = async () => {
   }
 }
 
-const handleGoogle = async () => {
+const handleVerifyOtp = async () => {
+  const token = otp.value.join('')
+  if (token.length !== 6) return
+  
+  isLoading.value = true
+  errorMsg.value = ''
   try {
-    await authStore.loginWithGoogle()
+    await authStore.verifyOtp(email.value, token)
+    if (authStore.needsOnboarding) {
+      router.push('/onboarding')
+    } else {
+      // Set flag to show summary poster
+      sessionStorage.setItem('show_summary_poster', 'true')
+      router.push('/')
+    }
   } catch (error) {
     errorMsg.value = error.message
+  } finally {
+    isLoading.value = false
   }
 }
 
-const handleForgotPassword = async () => {
-  if (!email.value) {
-    errorMsg.value = t('auth.enterEmailReset')
+const handleOtpInput = (index, event) => {
+  const value = event.target.value
+  if (!/^\d*$/.test(value)) {
+    otp.value[index] = ''
     return
   }
+  
+  if (value && index < 5) {
+    otpRefs.value[index + 1].focus()
+  }
+}
+
+const handleOtpKeydown = (index, event) => {
+  if (event.key === 'Backspace' && !otp.value[index] && index > 0) {
+    otpRefs.value[index - 1].focus()
+  }
+}
+
+const handleGoogle = async () => {
   try {
-    await authStore.resetPassword(email.value)
-    alert(t('auth.resetEmailSent'))
+    await authStore.loginWithGoogle()
   } catch (error) {
     errorMsg.value = error.message
   }

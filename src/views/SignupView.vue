@@ -1,93 +1,20 @@
 <template>
-  <div class="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8 card p-8 animate-scale-in">
-      
-      <div class="text-center" data-aos="fade-down">
-        <div class="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-primary-500/20 animate-float overflow-hidden border border-gray-100 dark:border-gray-800 p-1">
-          <img src="@/assets/mealmate_logo.png" alt="MealMate Logo" class="w-full h-full object-cover rounded-xl" />
-        </div>
-        <h2 class="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">{{ $t('auth.createAccount') }}</h2>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{{ $t('auth.createSubtitle') }}</p>
-      </div>
-
-      <div v-if="errorMsg" class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-xl text-sm font-medium border border-red-200 dark:border-red-800 animate-slide-down">
-        {{ errorMsg }}
-      </div>
-      
-      <div v-if="successMsg" class="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 p-4 rounded-xl text-sm font-medium border border-green-200 dark:border-green-800 animate-slide-down">
-        {{ successMsg }}
-      </div>
-
-      <form class="mt-8 space-y-6" @submit.prevent="handleSignup" data-aos="fade-up" data-aos-delay="100">
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{{ $t('auth.fullName') }}</label>
-            <input v-model="fullName" type="text" required class="input-field">
-          </div>
-          <div>
-            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{{ $t('auth.email') }}</label>
-            <input v-model="email" type="email" required class="input-field">
-          </div>
-          <div>
-            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{{ $t('auth.password') }}</label>
-            <div class="relative">
-              <input v-model="password" :type="showPassword ? 'text' : 'password'" required class="input-field pr-12">
-              <button type="button" @click="showPassword = !showPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                <Eye v-if="!showPassword" class="w-5 h-5" />
-                <EyeOff v-else class="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <button type="submit" :disabled="isLoading" class="btn-primary w-full flex justify-center items-center">
-            <Loader2 v-if="isLoading" class="w-5 h-5 mr-2 animate-spin" />
-            <UserPlus v-else class="w-5 h-5 mr-2" />
-            {{ isLoading ? $t('auth.creatingAccount') : $t('auth.signUp') }}
-          </button>
-        </div>
-      </form>
-
-      <p class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400" data-aos="fade-up" data-aos-delay="200">
-        {{ $t('auth.hasAccount') }}
-        <router-link to="/login" class="font-bold text-primary-600 hover:text-primary-500 transition-colors">{{ $t('auth.signIn2') }}</router-link>
-      </p>
+  <div class="min-h-[80vh] flex items-center justify-center py-12 px-4">
+    <div class="text-center">
+      <Loader2 class="w-8 h-8 animate-spin mx-auto text-primary-500 mb-4" />
+      <p class="text-gray-600 dark:text-gray-400">Redirecting to Login...</p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/authStore'
-import { UserPlus, Loader2, Eye, EyeOff } from 'lucide-vue-next'
+import { Loader2 } from 'lucide-vue-next'
 
 const router = useRouter()
-const authStore = useAuthStore()
 
-const fullName = ref('')
-const email = ref('')
-const password = ref('')
-const isLoading = ref(false)
-const errorMsg = ref('')
-const successMsg = ref('')
-const showPassword = ref(false)
-
-const handleSignup = async () => {
-  isLoading.value = true
-  errorMsg.value = ''
-  successMsg.value = ''
-  try {
-    await authStore.signUp(email.value, password.value, fullName.value)
-    successMsg.value = 'Registration successful! Redirecting...'
-    setTimeout(() => {
-      router.push('/')
-    }, 1500)
-  } catch (error) {
-    errorMsg.value = error.message
-  } finally {
-    isLoading.value = false
-  }
-}
+onMounted(() => {
+  router.push('/login')
+})
 </script>

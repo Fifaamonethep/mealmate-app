@@ -1,6 +1,8 @@
 <template>
   <div class="max-w-3xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6 pb-24 relative overflow-hidden min-h-screen">
     
+    <SummaryPosterModal />
+
     <!-- Background Decorative Elements -->
     <div class="fixed bottom-0 left-0 right-0 h-64 z-[-1] opacity-20 pointer-events-none overflow-hidden">
       <div class="absolute -bottom-20 left-1/2 transform -translate-x-1/2 w-[120%] h-64 bg-gradient-to-t from-red-500/30 via-yellow-500/20 to-transparent rounded-[100%] blur-3xl"></div>
@@ -135,7 +137,8 @@ import { onMounted, ref } from 'vue'
 import { useAuthStore } from '../stores/authStore'
 import { useDebtsStore } from '../stores/debts'
 import { supabase } from '../lib/supabase'
-import { Wallet, Sparkles, ArrowDownLeft, ArrowUpRight, Plus, Utensils, ArrowRight, Calendar } from 'lucide-vue-next'
+import { Wallet, Sparkles, ArrowDownLeft, ArrowUpRight, Plus, Utensils, ArrowRight, Calendar, User, Receipt, Users } from 'lucide-vue-next'
+import SummaryPosterModal from '@/components/layout/SummaryPosterModal.vue'
 
 const authStore = useAuthStore()
 const debtsStore = useDebtsStore()

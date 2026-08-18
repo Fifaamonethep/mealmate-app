@@ -6,6 +6,7 @@ export const useAuthStore = defineStore('authStore', () => {
   const user = ref(null)
   const isInitialized = ref(false)
   const onlineUsers = ref(new Set())
+  const needsOnboarding = ref(false)
   let presenceChannel = null
 
   const initializePresence = (userId) => {
@@ -82,6 +83,7 @@ export const useAuthStore = defineStore('authStore', () => {
           avatarUrl: data.avatar_url,
           role: data.role || 'user'
         }
+        needsOnboarding.value = !data.full_name || data.full_name === 'New User'
       } else if (error && (error.code === 'PGRST116' || error.code === '406')) {
         // Profile doesn't exist yet
         const { data: { user: authUser } } = await supabase.auth.getUser()
@@ -103,6 +105,7 @@ export const useAuthStore = defineStore('authStore', () => {
             avatarUrl: newProfile.avatar_url,
             role: newProfile.role
           }
+          needsOnboarding.value = !newProfile.full_name || newProfile.full_name === 'New User'
         }
       }
     } catch (err) {
@@ -146,6 +149,22 @@ export const useAuthStore = defineStore('authStore', () => {
     if (error) throw error
   }
 
+  const loginWithOtp = async (email) => {
+    const { data, error } = await supabase.auth.signInWithOtp({ email })
+    if (error) throw error
+    return data
+  }
+
+  const verifyOtp = async (email, token) => {
+    const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'email' })
+    if (error) throw error
+    if (data.user) {
+      await fetchProfile(data.user.id)
+      initializePresence(data.user.id)
+    }
+    return data
+  }
+
   const logout = async () => {
     const { error } = await supabase.auth.signOut()
     if (error) throw error
@@ -163,10 +182,13 @@ export const useAuthStore = defineStore('authStore', () => {
     user, 
     isInitialized, 
     onlineUsers,
+    needsOnboarding,
     initializeAuth, 
     signUp, 
     loginWithPassword, 
-    loginWithGoogle, 
+    loginWithGoogle,
+    loginWithOtp,
+    verifyOtp,
     logout,
     resetPassword
   }

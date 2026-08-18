@@ -11,7 +11,8 @@ const routes = [
     { path: '/meals', name: 'Meals', component: () => import('../views/MealsView.vue'), meta: { requiresAuth: true } },
     { path: '/admin', name: 'Admin', component: () => import('../views/AdminView.vue'), meta: { requiresAuth: true, requiresAdmin: true } },
     { path: '/add-meal', name: 'AddMeal', component: () => import('../views/AddMealView.vue'), meta: { requiresAuth: true } },
-    { path: '/profile', name: 'Profile', component: () => import('../views/ProfileView.vue'), meta: { requiresAuth: true } }
+    { path: '/profile', name: 'Profile', component: () => import('../views/ProfileView.vue'), meta: { requiresAuth: true } },
+    { path: '/onboarding', name: 'Onboarding', component: () => import('../views/OnboardingView.vue'), meta: { requiresAuth: true } }
 ]
 
 const router = createRouter({
@@ -44,6 +45,12 @@ router.beforeEach(async (to) => {
     if (to.meta.requiresAuth && !isLoggedIn) {
         return '/login'
     } else if (to.meta.guestOnly && isLoggedIn) {
+        return '/'
+    }
+
+    if (isLoggedIn && authStore.needsOnboarding && to.path !== '/onboarding') {
+        return '/onboarding'
+    } else if (isLoggedIn && !authStore.needsOnboarding && to.path === '/onboarding') {
         return '/'
     }
 
