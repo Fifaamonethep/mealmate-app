@@ -126,21 +126,33 @@
           </div>
           
           <div class="flex justify-between items-center mb-6">
-            <span class="text-sm text-gray-500 dark:text-gray-400">Each pays:</span>
-            <span class="text-lg font-bold text-green-600 dark:text-green-400">{{ ((form.totalAmount || 0) / Math.max(1, participants.length)).toLocaleString() }} {{ form.currency }}</span>
+            <span class="text-sm text-gray-500 dark:text-gray-400">Total to Split:</span>
+            <span class="text-lg font-bold text-green-600 dark:text-green-400">{{ (form.totalAmount || 0).toLocaleString() }} {{ form.currency }}</span>
           </div>
 
-          <!-- Settlement Result -->
+          <!-- Split Breakdown -->
           <div class="bg-gray-50 dark:bg-gray-900/50 rounded-3xl p-4 border border-gray-200 dark:border-gray-800">
-            <p class="text-xs font-bold text-gray-500 dark:text-primary-400 mb-3">Automatic Debt Settlement Result:</p>
-            <div v-for="p in participants" :key="p.name" class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800 last:border-0">
+            <div class="flex justify-between items-center mb-3">
+              <p class="text-xs font-bold text-gray-500 dark:text-primary-400">Split Breakdown:</p>
+              <p v-if="form.splitMethod === 'custom'" :class="['text-xs font-bold', remainingCustomAmount === 0 ? 'text-green-500' : 'text-red-500']">
+                Remaining: {{ remainingCustomAmount.toLocaleString() }}
+              </p>
+            </div>
+            
+            <div v-for="(p, index) in participants" :key="index" class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800 last:border-0">
               <div class="flex items-center space-x-3">
                 <div class="w-8 h-8 rounded-full bg-primary-200 dark:bg-primary-700 flex items-center justify-center text-primary-800 dark:text-white font-bold text-xs">
                   {{ p.name?.charAt(0) || 'U' }}
                 </div>
                 <span class="text-sm font-medium text-gray-900 dark:text-white">{{ p.name }} <span v-if="p.isGuest" class="text-xs text-gray-400">(Guest)</span></span>
               </div>
-              <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Owes {{ ((form.totalAmount || 0) / Math.max(1, participants.length)).toLocaleString() }}</span>
+              
+              <span v-if="form.splitMethod === 'equal'" class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Owes {{ ((form.totalAmount || 0) / Math.max(1, participants.length)).toLocaleString() }}
+              </span>
+              <div v-else class="flex items-center space-x-2">
+                <input v-model.number="p.amount_owed" type="number" class="w-24 px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-right font-bold focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="0">
+              </div>
             </div>
           </div>
         </div>
@@ -158,11 +170,35 @@
       </div>
 
     </div>
+
+    <!-- Success Modal Overlay -->
+    <transition name="fade">
+      <div v-if="showSuccessModal" class="absolute inset-0 z-[200] bg-white/90 dark:bg-gray-900/90 backdrop-blur-md flex flex-col items-center justify-center rounded-[2rem]">
+        <div class="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6 animate-bounce">
+          <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Success!</h2>
+        <p class="text-gray-500 dark:text-gray-400 font-medium">Meal created successfully.</p>
+      </div>
+    </transition>
+
+    <!-- Error Modal Overlay -->
+    <transition name="fade">
+      <div v-if="errorMessage" class="absolute inset-0 z-[200] bg-white/90 dark:bg-gray-900/90 backdrop-blur-md flex flex-col items-center justify-center rounded-[2rem] p-6 text-center">
+        <div class="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-6">
+          <X class="w-10 h-10 text-red-500" />
+        </div>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Oops!</h2>
+        <p class="text-red-500 font-medium mb-6">{{ errorMessage }}</p>
+        <button @click="errorMessage = ''" class="px-8 py-3 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-2xl font-bold">Try Again</button>
+      </div>
+    </transition>
+
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import { supabase } from '../lib/supabase'
@@ -172,6 +208,8 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const isSaving = ref(false)
+const showSuccessModal = ref(false)
+const errorMessage = ref('')
 const groups = ref([])
 const receiptImage = ref(null)
 
@@ -197,15 +235,22 @@ onMounted(async () => {
 const receiptFile = ref(null)
 const newGuestName = ref('')
 const participants = ref([
-  { id: authStore.user?.id, name: authStore.user?.fullName, isGuest: false }
+  { id: authStore.user?.id, name: authStore.user?.fullName, isGuest: false, amount_owed: 0 }
 ])
+
+const remainingCustomAmount = computed(() => {
+  const total = form.value.totalAmount || 0;
+  const currentSum = participants.value.reduce((sum, p) => sum + (p.amount_owed || 0), 0);
+  return total - currentSum;
+})
 
 const addGuest = () => {
   if (newGuestName.value.trim()) {
     participants.value.push({
       id: null,
       name: newGuestName.value.trim(),
-      isGuest: true
+      isGuest: true,
+      amount_owed: 0
     })
     newGuestName.value = ''
   }
@@ -226,7 +271,7 @@ watch(() => form.value.groupId, async (newGroupId) => {
       
     if (members && members.length > 0) {
       members.forEach(m => {
-        const memberObj = { id: m.user_id, name: m.profiles?.full_name, isGuest: false }
+        const memberObj = { id: m.user_id, name: m.profiles?.full_name, isGuest: false, amount_owed: 0 }
         groupMembers.value.push(memberObj)
         // Add to participants if not already there
         if (!participants.value.some(p => p.id === m.user_id)) {
@@ -283,23 +328,35 @@ const saveMeal = async () => {
 
     // 3. Prepare Participants
     let finalParticipants = [...participants.value]
+    
+    // Validation for custom split
+    if (form.value.splitMethod === 'custom') {
+      const sum = finalParticipants.reduce((acc, p) => acc + (p.amount_owed || 0), 0)
+      if (Math.abs(sum - form.value.totalAmount) > 0.01) {
+        errorMessage.value = `Custom split amounts must equal the total price (${form.value.totalAmount}). Currently missing/over by ${Math.abs(sum - form.value.totalAmount)}`
+        isSaving.value = false
+        return
+      }
+    }
 
-    const splitAmount = form.value.totalAmount / Math.max(1, finalParticipants.length)
+    const equalSplitAmount = form.value.totalAmount / Math.max(1, finalParticipants.length)
 
     const pRecords = finalParticipants.map(p => ({
       meal_id: mealData.id,
       user_id: p.id,
       guest_name: p.isGuest ? p.name : null,
-      amount_owed: splitAmount
+      amount_owed: form.value.splitMethod === 'custom' ? (p.amount_owed || 0) : equalSplitAmount
     }))
 
     const { error: partError } = await supabase.from('meal_participants').insert(pRecords)
     if (partError) throw partError
 
-    alert("Meal Created successfully!")
-    router.push('/meals')
+    showSuccessModal.value = true
+    setTimeout(() => {
+      router.push('/meals')
+    }, 2000)
   } catch (err) {
-    alert("Error saving meal: " + err.message)
+    errorMessage.value = err.message
   } finally {
     isSaving.value = false
   }
@@ -316,5 +373,11 @@ const saveMeal = async () => {
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: rgba(156, 163, 175, 0.3);
   border-radius: 10px;
+}
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
 }
 </style>

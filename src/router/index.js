@@ -7,6 +7,7 @@ const routes = [
     { path: '/signup', name: 'Signup', component: () => import('../views/SignupView.vue'), meta: { guestOnly: true } },
     { path: '/friends', name: 'Friends', component: () => import('../views/FriendsView.vue'), meta: { requiresAuth: true } },
     { path: '/groups', name: 'Groups', component: () => import('../views/GroupsView.vue'), meta: { requiresAuth: true } },
+    { path: '/group/:id', name: 'GroupDetail', component: () => import('../views/GroupDetailView.vue'), meta: { requiresAuth: true } },
     { path: '/debts', name: 'Debts', component: () => import('../views/DebtsView.vue'), meta: { requiresAuth: true } },
     { path: '/meals', name: 'Meals', component: () => import('../views/MealsView.vue'), meta: { requiresAuth: true } },
     { path: '/admin', name: 'Admin', component: () => import('../views/AdminView.vue'), meta: { requiresAuth: true, requiresAdmin: true } },
