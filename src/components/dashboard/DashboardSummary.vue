@@ -1,20 +1,20 @@
 <template>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 animate-slide-up stagger-1 mt-6">
     
-    <!-- Category Breakdown (Donut Chart) -->
+    <!-- Who Owes Me (Donut Chart) -->
     <div class="bg-white/80 dark:bg-[#0f172a]/90 backdrop-blur-xl border border-gray-200 dark:border-gray-800 rounded-[2rem] p-5 shadow-sm hover:shadow-md transition-shadow relative z-0">
       <h3 class="text-base font-bold text-gray-900 dark:text-white mb-4 flex items-center">
-        <PieChart class="w-4 h-4 mr-2 text-primary-500" /> Spending by Category
+        <PieChart class="w-4 h-4 mr-2 text-primary-500" /> {{ $t('home.whoOwesMe', 'Who Owes Me') }}
       </h3>
       <div class="flex justify-center">
         <apexchart type="donut" height="220" :options="donutOptions" :series="donutSeries"></apexchart>
       </div>
     </div>
 
-    <!-- Weekly Trends (Bar Chart) -->
+    <!-- Who I Owe (Bar Chart) -->
     <div class="bg-white/80 dark:bg-[#0f172a]/90 backdrop-blur-xl border border-gray-200 dark:border-gray-800 rounded-[2rem] p-5 shadow-sm hover:shadow-md transition-shadow relative z-0">
       <h3 class="text-base font-bold text-gray-900 dark:text-white mb-4 flex items-center">
-        <BarChart3 class="w-4 h-4 mr-2 text-green-500" /> Weekly Trends
+        <BarChart3 class="w-4 h-4 mr-2 text-red-500" /> {{ $t('home.whoIOwe', 'Who I Owe') }}
       </h3>
       <div class="relative -ml-2">
         <apexchart type="bar" height="220" :options="barOptions" :series="barSeries"></apexchart>
@@ -28,43 +28,54 @@
 import { computed } from 'vue'
 import { PieChart, BarChart3 } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/appStore'
+import { useDebtsStore } from '@/stores/debts'
+import { useAuthStore } from '@/stores/authStore'
+import { useI18n } from 'vue-i18n'
 
 const appStore = useAppStore()
+const debtsStore = useDebtsStore()
+const authStore = useAuthStore()
+const { t } = useI18n()
 
-// --- Mock Data ---
-// Categories: Food (45%), Transport (25%), Shopping (15%), Entertainment (10%), Other (5%)
-const donutSeries = [45, 25, 15, 10, 5]
-const categoryLabels = ['Food', 'Transport', 'Shopping', 'Entertainment', 'Other']
+const myDebts = computed(() => {
+  if (!authStore.user) return []
+  return debtsStore.optimizedTransactions.filter(tx => tx.fromId === authStore.user.id)
+})
 
-// Weekly Trends
-const weeklyLabels = ['Week 1', 'Week 2', 'Week 3', 'Week 4']
-const weeklyData = [120000, 180000, 95000, 210000]
+const debtsToMe = computed(() => {
+  if (!authStore.user) return []
+  return debtsStore.optimizedTransactions.filter(tx => tx.toId === authStore.user.id)
+})
 
-// --- Donut Chart Config ---
+// --- Donut Chart Config (Who Owes Me) ---
+const donutSeries = computed(() => {
+  if (debtsToMe.value.length === 0) return [1] // Dummy value for empty state
+  return debtsToMe.value.slice(0, 5).map(tx => tx.amount)
+})
+const categoryLabels = computed(() => {
+  if (debtsToMe.value.length === 0) return [t('home.noOneOwesYou', 'No one owes you')]
+  return debtsToMe.value.slice(0, 5).map(tx => tx.from)
+})
+
 const donutOptions = computed(() => {
   const isDark = appStore.isDark
+  const hasData = debtsToMe.value.length > 0
   return {
     chart: {
       type: 'donut',
       background: 'transparent',
       fontFamily: 'inherit',
-      animations: {
-        enabled: true,
-        easing: 'easeinout',
-        speed: 800
-      }
+      animations: { enabled: true, easing: 'easeinout', speed: 800 }
     },
     theme: { mode: isDark ? 'dark' : 'light' },
-    labels: categoryLabels,
-    colors: ['#0ea5e9', '#f59e0b', '#10b981', '#8b5cf6', '#64748b'],
+    labels: categoryLabels.value,
+    colors: hasData ? ['#35a076', '#f97316', '#0ea5e9', '#8b5cf6', '#64748b'] : ['#e5e7eb'],
     stroke: {
       show: true,
       colors: isDark ? ['#0f172a'] : ['#ffffff'],
       width: 2
     },
-    dataLabels: {
-      enabled: false // cleaner look
-    },
+    dataLabels: { enabled: false },
     plotOptions: {
       pie: {
         donut: {
@@ -85,17 +96,23 @@ const donutOptions = computed(() => {
               fontWeight: 800,
               color: isDark ? '#ffffff' : '#111827',
               formatter: function (val) {
-                return val + "%"
+                if (!hasData) return '0'
+                return Number(val).toLocaleString()
               }
             },
             total: {
               show: true,
               showAlways: false,
-              label: 'Total',
+              label: t('home.totalOwed', 'Total Owed'),
               fontSize: '12px',
               fontFamily: 'inherit',
               fontWeight: 600,
               color: isDark ? '#9ca3af' : '#6b7280',
+              formatter: function (w) {
+                if (!hasData) return '0'
+                const total = w.globals.seriesTotals.reduce((a, b) => a + b, 0)
+                return total.toLocaleString()
+              }
             }
           }
         }
@@ -108,48 +125,52 @@ const donutOptions = computed(() => {
       fontSize: '11px',
       markers: { width: 8, height: 8, radius: 12 },
       itemMargin: { horizontal: 5, vertical: 0 },
-      labels: {
-        colors: isDark ? '#9ca3af' : '#4b5563'
-      }
+      labels: { colors: isDark ? '#9ca3af' : '#4b5563' }
     },
     tooltip: {
       theme: isDark ? 'dark' : 'light',
       y: {
         formatter: function(val) {
-          return val + "%"
+          if (!hasData) return ''
+          return val.toLocaleString() + " LAK"
         }
       }
     }
   }
 })
 
-// --- Bar Chart Config ---
+// --- Bar Chart Config (Who I Owe) ---
+const barSeries = computed(() => [
+  { name: t('home.amount', 'Amount'), data: myDebts.value.length === 0 ? [0] : myDebts.value.slice(0, 5).map(tx => tx.amount) }
+])
+const weeklyLabels = computed(() => {
+  if (myDebts.value.length === 0) return [t('home.noDebts', 'No Debts')]
+  return myDebts.value.slice(0, 5).map(tx => tx.to)
+})
+
 const barOptions = computed(() => {
   const isDark = appStore.isDark
+  const hasData = myDebts.value.length > 0
   return {
     chart: {
       type: 'bar',
       toolbar: { show: false },
       background: 'transparent',
       fontFamily: 'inherit',
-      animations: {
-        enabled: true,
-        easing: 'easeinout',
-        speed: 800
-      }
+      animations: { enabled: true, easing: 'easeinout', speed: 800 }
     },
     theme: { mode: isDark ? 'dark' : 'light' },
-    colors: ['#10b981'],
+    colors: hasData ? ['#f97316'] : ['#e5e7eb'],
     plotOptions: {
       bar: {
         borderRadius: 6,
         columnWidth: '40%',
-        distributed: true // allows individual colors if needed later
+        distributed: true
       }
     },
     dataLabels: { enabled: false },
     xaxis: {
-      categories: weeklyLabels,
+      categories: weeklyLabels.value,
       labels: {
         style: { colors: isDark ? '#9ca3af' : '#6b7280', fontSize: '11px', fontWeight: 600 }
       },
@@ -160,6 +181,7 @@ const barOptions = computed(() => {
       labels: {
         style: { colors: isDark ? '#9ca3af' : '#6b7280', fontSize: '11px', fontWeight: 500 },
         formatter: (val) => {
+          if (val === 0) return '0'
           return (val / 1000) + 'k'
         }
       }
@@ -175,13 +197,11 @@ const barOptions = computed(() => {
       theme: isDark ? 'dark' : 'light',
       y: {
         formatter: function(val) {
+          if (!hasData) return ''
           return val.toLocaleString() + " LAK"
         }
       }
     }
   }
 })
-const barSeries = computed(() => [
-  { name: 'Spent', data: weeklyData }
-])
 </script>

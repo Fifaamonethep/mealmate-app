@@ -62,7 +62,7 @@
             </button>
           </div>
           
-          <div class="flex justify-between gap-2" dir="ltr">
+          <div class="flex justify-center gap-2" dir="ltr">
             <input 
               v-for="(digit, index) in 6" :key="index"
               :ref="el => otpRefs[index] = el"
@@ -205,7 +205,11 @@ const handleSendOtp = async () => {
       if (otpRefs.value[0]) otpRefs.value[0].focus()
     })
   } catch (error) {
-    errorMsg.value = error.message
+    if (error.message?.includes('Signups not allowed')) {
+      errorMsg.value = "Email not found. Please sign up first."
+    } else {
+      errorMsg.value = error.message
+    }
   } finally {
     isLoading.value = false
   }
@@ -305,6 +309,11 @@ const handleOtpInput = (index, event) => {
   
   if (value && index < 5) {
     otpRefs.value[index + 1].focus()
+  }
+
+  // Auto-submit if all 6 digits are entered
+  if (otp.value.join('').length === 6) {
+    handleVerifyOtp()
   }
 }
 

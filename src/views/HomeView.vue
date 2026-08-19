@@ -26,7 +26,7 @@
 
         <!-- Meals Button -->
         <router-link to="/add-meal" class="bg-primary-500 hover:bg-primary-600 text-white rounded-2xl px-5 py-2.5 font-bold shadow-lg shadow-primary-500/20 transition-transform active:scale-95 flex items-center text-sm relative z-10">
-          <Plus class="w-4 h-4 mr-1.5" /> Meals
+          <Plus class="w-4 h-4 mr-1.5" /> {{ $t('nav.addMeal', 'Meals') }}
         </router-link>
       </div>
     </div>
@@ -76,10 +76,10 @@
     <div class="animate-slide-up stagger-2 pt-2 mt-4 relative z-0">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-base font-bold text-gray-900 dark:text-white flex items-center">
-          <Activity class="w-4 h-4 mr-2 text-primary-500" /> Activity Feed
+          <Activity class="w-4 h-4 mr-2 text-primary-500" /> {{ $t('home.recentActivity', 'Activity Feed') }}
         </h3>
         <router-link to="/meals" class="text-xs font-bold text-primary-500 flex items-center hover:text-primary-600 transition-colors">
-          View All <ArrowRight class="w-3 h-3 ml-1" />
+          {{ $t('common.viewAll', 'View All') }} <ArrowRight class="w-3 h-3 ml-1" />
         </router-link>
       </div>
 
@@ -88,12 +88,12 @@
         <!-- Vertical Line -->
         <div class="absolute left-[38px] top-4 bottom-4 w-0.5 bg-gray-200 dark:bg-gray-800 rounded-full z-0"></div>
 
-        <div v-for="(activity, index) in mockActivities" :key="activity.id" class="relative z-10 mb-8 last:mb-0 animate-fade-in" :style="{ animationDelay: `${index * 100}ms` }">
+        <div v-for="(activity, index) in activities" :key="activity.id" class="relative z-10 mb-8 last:mb-0 animate-fade-in" :style="{ animationDelay: `${index * 100}ms` }">
           <div class="flex items-start">
             <!-- Timeline Node (Avatar) -->
             <div class="w-11 h-11 rounded-full border-[3px] border-gray-50 dark:border-[#111827] bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0 shadow-sm flex items-center justify-center relative z-10">
               <img v-if="activity.avatar" :src="activity.avatar" class="w-full h-full object-cover">
-              <span v-else class="text-sm font-bold text-gray-500">{{ activity.initial }}</span>
+              <span v-else class="text-xl">{{ activity.initial }}</span>
             </div>
             
             <!-- Content -->
@@ -104,11 +104,12 @@
                 
                 <p class="text-sm text-gray-800 dark:text-gray-200 leading-relaxed" v-html="activity.text"></p>
                 <div class="mt-3 flex items-center justify-between">
-                  <span :class="['px-2.5 py-1 rounded-lg text-xs font-bold border', 
+                  <span v-if="activity.amount" :class="['px-2.5 py-1 rounded-lg text-xs font-bold border', 
                     activity.type === 'expense' ? 'bg-red-50 text-red-600 border-red-100 dark:bg-red-900/10 dark:border-red-900/30 dark:text-red-400' 
                     : 'bg-green-50 text-green-600 border-green-100 dark:bg-green-900/10 dark:border-green-900/30 dark:text-green-400']">
                     {{ activity.amount }}
                   </span>
+                  <div v-else></div> <!-- spacer if no amount -->
                   <span class="text-xs font-medium text-gray-400 dark:text-gray-500 flex items-center">
                     <Clock class="w-3 h-3 mr-1" /> {{ activity.time }}
                   </span>
@@ -128,28 +129,58 @@
 import { onMounted, ref, computed } from 'vue'
 import { useAuthStore } from '../stores/authStore'
 import { useDebtsStore } from '../stores/debts'
+import { useNotificationsStore } from '../stores/notificationsStore'
 import { supabase } from '../lib/supabase'
-import { Wallet, Sparkles, ArrowDownLeft, ArrowUpRight, Plus, Utensils, ArrowRight, Calendar, User, Receipt, Users, Clock, Activity } from 'lucide-vue-next'
+import { Wallet, Sparkles, ArrowDownLeft, ArrowUpRight, Plus, Utensils, ArrowRight, Calendar, User, Receipt, Users, Clock, Activity, Bell } from 'lucide-vue-next'
 import SummaryPosterModal from '@/components/layout/SummaryPosterModal.vue'
 import DashboardSummary from '@/components/dashboard/DashboardSummary.vue'
 import { useAppStore } from '../stores/appStore'
+import { useI18n } from 'vue-i18n'
 
 const authStore = useAuthStore()
 const debtsStore = useDebtsStore()
 const appStore = useAppStore()
+const notificationsStore = useNotificationsStore()
+const { t } = useI18n()
 
-// --- Activity Feed State ---
-const mockActivities = ref([
-  { id: 1, initial: 'A', avatar: '', text: '<span class="font-bold text-gray-900 dark:text-white">Alice</span> just added a bill for <span class="font-bold text-primary-500">BBQ pork</span> in <span class="font-bold text-gray-900 dark:text-gray-300">Weekend Trip</span>.', amount: '150,000 LAK', type: 'expense', time: 'Just now' },
-  { id: 2, initial: 'B', avatar: '', text: '<span class="font-bold text-gray-900 dark:text-white">Bob</span> has transferred money to clear <span class="font-bold text-gray-900 dark:text-white">Charlie\'s</span> debt.', amount: '45,000 LAK', type: 'settle', time: '2 hours ago' },
-  { id: 3, initial: 'C', avatar: '', text: '<span class="font-bold text-gray-900 dark:text-white">Charlie</span> added a new group <span class="font-bold text-primary-500">Camping Boys</span>.', amount: 'Group Created', type: 'settle', time: 'Yesterday' }
-])
+// --- Activity Feed State (Real Data) ---
+const formatTimeAgo = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffInSeconds = Math.floor((now - date) / 1000)
+  
+  if (diffInSeconds < 60) return t('home.justNow', 'Just now')
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} ${t('home.minsAgo', 'mins ago')}`
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} ${t('home.hoursAgo', 'hours ago')}`
+  return `${Math.floor(diffInSeconds / 86400)} ${t('home.daysAgo', 'days ago')}`
+}
+
+const activities = computed(() => {
+  if (!notificationsStore.notifications || notificationsStore.notifications.length === 0) {
+    return []
+  }
+  
+  return notificationsStore.notifications.slice(0, 5).map(n => {
+    let typeClass = 'expense'
+    if (n.type === 'PAYMENT_VERIFIED' || n.type === 'PAYMENT_SENT') typeClass = 'settle'
+    
+    return {
+      id: n.id,
+      initial: '🔔', // Generic icon for now, could be dynamic
+      avatar: '',
+      text: n.message,
+      amount: '', // No exact amount in notification model natively, but could be parsed
+      type: typeClass,
+      time: formatTimeAgo(n.created_at)
+    }
+  })
+})
 
 onMounted(() => {
   debtsStore.fetchSettlements()
+  // Notifications are fetched in Navbar, so they should be available globally
 })
-
-// (Chart options moved to DashboardSummary.vue)
 
 const formatDate = (dateString) => {
   if (!dateString) return ''

@@ -150,7 +150,12 @@ export const useAuthStore = defineStore('authStore', () => {
   }
 
   const loginWithOtp = async (email) => {
-    const { data, error } = await supabase.auth.signInWithOtp({ email })
+    const { data, error } = await supabase.auth.signInWithOtp({ 
+      email,
+      options: {
+        shouldCreateUser: false
+      }
+    })
     if (error) throw error
     return data
   }

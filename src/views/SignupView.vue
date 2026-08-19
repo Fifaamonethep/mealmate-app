@@ -61,7 +61,7 @@
             </button>
           </div>
           
-          <div class="flex justify-between gap-2" dir="ltr">
+          <div class="flex justify-center gap-2" dir="ltr">
             <input 
               v-for="(digit, index) in 6" :key="index"
               :ref="el => otpRefs[index] = el"
@@ -161,6 +161,11 @@ const handleOtpInput = (index, event) => {
   
   if (value && index < 5) {
     otpRefs.value[index + 1].focus()
+  }
+
+  // Auto-submit if all 6 digits are entered
+  if (otp.value.join('').length === 6) {
+    handleVerifyOtp()
   }
 }
 
