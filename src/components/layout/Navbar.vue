@@ -26,7 +26,7 @@
           
           <!-- Notifications (Bell) -->
           <div v-if="authStore.user" class="relative" v-click-outside="() => notifMenuOpen = false">
-            <button @click="notifMenuOpen = !notifMenuOpen" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-300 transition-colors focus:outline-none relative">
+            <button @click.stop="notifMenuOpen = !notifMenuOpen" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-300 transition-colors focus:outline-none relative">
               <Bell class="w-5 h-5" />
               <!-- Notification Badge -->
               <span v-if="notificationsStore.unreadCount > 0" class="absolute top-1 right-1 w-4 h-4 bg-red-500 text-[10px] text-white flex items-center justify-center rounded-full border-2 border-white dark:border-[#0f172a]">{{ notificationsStore.unreadCount > 9 ? '9+' : notificationsStore.unreadCount }}</span>
@@ -71,8 +71,8 @@
           </div>
 
           <!-- Custom Language Switcher with Image Flags (Windows friendly) -->
-          <div class="relative group" @click="langMenuOpen = !langMenuOpen" v-click-outside="() => langMenuOpen = false">
-            <button class="flex items-center space-x-2 bg-gray-100 dark:bg-[#1e293b] border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-1.5 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
+          <div class="relative group" v-click-outside="() => langMenuOpen = false">
+            <button @click.stop="langMenuOpen = !langMenuOpen" class="flex items-center space-x-2 bg-gray-100 dark:bg-[#1e293b] border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-1.5 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
               <img :src="getCurrentFlag()" class="w-5 h-5 object-cover rounded-sm shadow-sm" alt="Flag">
               <span class="text-sm font-bold text-gray-700 dark:text-gray-200 uppercase">{{ currentLang }}</span>
               <ChevronDown class="w-3 h-3 text-gray-400" />

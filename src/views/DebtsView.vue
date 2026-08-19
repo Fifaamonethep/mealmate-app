@@ -357,6 +357,16 @@ const handleFileUpload = async (event) => {
 
     if (error) throw error
 
+    // Send Notification to Creditor
+    const { useNotificationsStore } = await import('../stores/notificationsStore')
+    const notifStore = useNotificationsStore()
+    await notifStore.sendNotification(
+      toId,
+      'PAYMENT_SENT',
+      `<b>${authStore.user?.user_metadata?.full_name || authStore.user?.email || 'Someone'}</b> uploaded a payment slip for ${selectedTx.value.amount.toLocaleString()} LAK.`,
+      // we don't have the exact payment id yet without a select, but that's okay, relatedId is optional
+    )
+
     uploadSuccess.value = true
     setTimeout(() => {
       if (selectedTx.value) {
