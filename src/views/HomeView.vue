@@ -9,7 +9,7 @@
     </div>
 
     <!-- Header -->
-    <div class="flex items-center justify-between animate-fade-in relative z-50">
+    <div class="flex items-center justify-between animate-fade-in relative z-10">
       <div class="flex items-center space-x-3">
         <div class="w-12 h-12 rounded-full overflow-hidden bg-primary-200 dark:bg-primary-900/30 border border-primary-100 dark:border-primary-800 flex items-center justify-center flex-shrink-0">
           <img v-if="authStore.user?.avatarUrl" :src="authStore.user.avatarUrl" class="w-full h-full object-cover">
