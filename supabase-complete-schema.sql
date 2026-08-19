@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     avatar_url TEXT,
     currency TEXT DEFAULT 'LAK',
     qr_code_url TEXT,
+    phone_number TEXT,
     role TEXT DEFAULT 'user',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
