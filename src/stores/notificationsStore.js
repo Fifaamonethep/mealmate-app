@@ -26,6 +26,7 @@ export const useNotificationsStore = defineStore('notificationsStore', () => {
       const { data, error: err } = await supabase
         .from('notifications')
         .select('*')
+        .eq('user_id', authStore.user.id)
         .order('created_at', { ascending: false })
         .limit(50)
         
