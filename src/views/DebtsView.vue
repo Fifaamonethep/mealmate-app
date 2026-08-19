@@ -195,7 +195,7 @@ import { useAuthStore } from '../stores/authStore'
 import { CreditCard, Share2, ArrowUpRight, ArrowDownLeft, Filter, QrCode, X, UploadCloud, Loader2, CheckCircle2, Clock, Check, Download } from 'lucide-vue-next'
 import { supabase } from '../lib/supabase'
 import QrcodeVue from 'qrcode.vue'
-import { generateLaoQR } from '../utils/laoQr'
+import { generateLaoQR, injectAmountIntoEMVCo } from '../utils/laoQr'
 
 const debtsStore = useDebtsStore()
 const authStore = useAuthStore()
@@ -264,7 +264,11 @@ const openPaymentModal = async (tx) => {
       .single()
       
     if (profiles && profiles.qr_code_url) {
-      qrCodeData.value = profiles.qr_code_url
+      if (profiles.qr_code_url.startsWith('000201')) {
+         qrCodeData.value = injectAmountIntoEMVCo(profiles.qr_code_url, tx.amount)
+      } else {
+         qrCodeData.value = profiles.qr_code_url
+      }
     } else if (profiles && profiles.phone_number) {
       qrCodeData.value = generateLaoQR(profiles.phone_number, tx.amount)
     } else {
