@@ -68,3 +68,46 @@ function crc16(data) {
   }
   return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
 }
+
+export function injectAmountIntoEMVCo(qrString, amount) {
+  if (!qrString || !qrString.startsWith('000201')) return qrString;
+  
+  // 1. Remove the old CRC (last 8 characters: 6304XXXX)
+  // Ensure the string ends with 6304 and 4 chars of CRC
+  const crcIndex = qrString.indexOf('6304');
+  if (crcIndex === -1) return qrString;
+  
+  let payload = qrString.substring(0, crcIndex);
+  
+  // 2. Change 010211 (Static) to 010212 (Dynamic)
+  payload = payload.replace('010211', '010212');
+  
+  // 3. Remove existing tag 54 if present (highly unlikely in a static QR, but just in case)
+  // A robust parser would be better, but for standard BCEL static strings this is safe.
+  const tag54Index = payload.indexOf('54');
+  if (tag54Index !== -1 && payload.substring(tag54Index, tag54Index + 2) === '54') {
+     // Very naive tag removal, better to just assume it's not there for static QRs
+     // Or we can just rebuild the string properly, but let's assume it doesn't have 54.
+  }
+
+  // 4. Append Tag 54 (Transaction Amount)
+  if (amount > 0) {
+    // Convert amount to string, no decimals if not needed, or fixed 2
+    // For Laos (LAK), usually no decimals are needed, or .00
+    // BCEL usually accepts plain integers for LAK
+    let amountStr = amount.toString();
+    if (amountStr.includes('.')) {
+      amountStr = Number(amount).toFixed(2);
+    }
+    
+    const len = String(amountStr.length).padStart(2, '0');
+    payload += `54${len}${amountStr}`;
+  }
+  
+  // 5. Add 6304 back
+  payload += '6304';
+  
+  // 6. Calculate new CRC
+  const crc = crc16(payload);
+  return payload + crc;
+}

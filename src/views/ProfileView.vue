@@ -105,7 +105,11 @@
         <!-- Payment QR Code inside main form flow -->
         <div class="mt-8 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-3xl p-5 flex flex-col sm:flex-row items-center gap-6">
           <label class="relative w-32 h-32 flex-shrink-0 bg-white dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl flex items-center justify-center cursor-pointer overflow-hidden group hover:border-primary-500 transition-colors">
-            <img v-if="profile.qrCodeUrl" :src="profile.qrCodeUrl" class="w-full h-full object-cover">
+            <img v-if="profile.qrCodeUrl && profile.qrCodeUrl.startsWith('http')" :src="profile.qrCodeUrl" class="w-full h-full object-cover">
+            <div v-else-if="profile.qrCodeUrl && profile.qrCodeUrl.startsWith('000201')" class="w-full h-full flex flex-col items-center justify-center bg-green-50/80 dark:bg-green-900/20 text-green-600 dark:text-green-400 font-bold text-xs p-2 text-center">
+              <CheckCircle2 class="w-6 h-6 mb-1" />
+              Dynamic QR Ready
+            </div>
             <QrCode v-else class="w-8 h-8 text-gray-400 group-hover:text-primary-500 transition-colors" />
             <div v-if="isUploadingQR" class="absolute inset-0 bg-white/80 dark:bg-gray-900/80 flex items-center justify-center">
               <Loader2 class="w-6 h-6 text-primary-500 animate-spin" />
@@ -176,9 +180,10 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import { supabase } from '../lib/supabase'
-import { User, QrCode, Save, Camera, Lock, X, Loader2, Copy, Key, LogOut } from 'lucide-vue-next'
+import { User, QrCode, Save, Camera, Lock, X, Loader2, Copy, Key, LogOut, CheckCircle2 } from 'lucide-vue-next'
 import { Cropper } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
+import jsQR from 'jsqr'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -305,6 +310,38 @@ const handleUploadQR = async (event) => {
   const file = event.target.files[0]
   if (!file) return
   isUploadingQR.value = true
+  
+  try {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = async () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        ctx.drawImage(img, 0, 0, img.width, img.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        
+        if (code && code.data && code.data.startsWith('000201')) {
+           profile.value.qrCodeUrl = code.data;
+           alert("Successfully extracted your QR Code data! It will now support dynamic amounts.");
+           isUploadingQR.value = false;
+        } else {
+           uploadQRFile(file);
+        }
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  } catch (err) {
+    uploadQRFile(file);
+  }
+}
+
+const uploadQRFile = async (file) => {
   try {
     const fileExt = file.name.split('.').pop()
     const fileName = `${authStore.user.id}_qr.${fileExt}`
