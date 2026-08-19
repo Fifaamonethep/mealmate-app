@@ -152,14 +152,14 @@
               <p class="text-sm font-bold text-gray-700 dark:text-gray-300 mt-2">to {{ selectedTx?.to }}</p>
             </div>
 
-            <div class="flex justify-center mb-8">
-              <div class="p-4 bg-white rounded-3xl shadow-sm border border-gray-100 inline-block relative">
-                <div v-if="qrCodeData" class="relative">
-                  <img v-if="qrCodeData.startsWith('http')" :src="qrCodeData" class="w-[200px] h-[200px] object-contain rounded-xl shadow-sm" alt="Payment QR" crossorigin="anonymous" />
-                  <QrcodeVue v-else :value="qrCodeData" :size="200" level="H" id="payment-qr-canvas" />
+            <div class="flex flex-col items-center mb-8">
+              <div class="p-4 bg-white rounded-3xl shadow-sm border border-gray-100 inline-block">
+                <div v-if="qrCodeData" class="flex flex-col items-center">
+                  <img v-if="qrCodeData.startsWith('http')" :src="qrCodeData" class="w-[200px] h-[200px] object-contain rounded-xl shadow-sm mb-4" alt="Payment QR" crossorigin="anonymous" />
+                  <QrcodeVue v-else :value="qrCodeData" :size="200" level="H" id="payment-qr-canvas" class="mb-4" />
                   
-                  <button @click.prevent="downloadQR" class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 px-4 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center hover:scale-105 transition-transform whitespace-nowrap z-10">
-                    <Download class="w-3 h-3 mr-1" /> Save QR
+                  <button @click.prevent="downloadQR" class="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 px-5 py-2 rounded-full text-xs font-bold shadow-lg flex items-center hover:scale-105 transition-transform whitespace-nowrap">
+                    <Download class="w-4 h-4 mr-2" /> Save QR
                   </button>
                 </div>
                 <div v-else class="w-[200px] h-[200px] flex items-center justify-center text-gray-400 bg-gray-50 rounded-xl font-bold text-sm">No QR Data</div>
@@ -263,10 +263,10 @@ const openPaymentModal = async (tx) => {
       .eq('full_name', tx.to)
       .single()
       
-    if (profiles && profiles.phone_number) {
-      qrCodeData.value = generateLaoQR(profiles.phone_number, tx.amount)
-    } else if (profiles && profiles.qr_code_url) {
+    if (profiles && profiles.qr_code_url) {
       qrCodeData.value = profiles.qr_code_url
+    } else if (profiles && profiles.phone_number) {
+      qrCodeData.value = generateLaoQR(profiles.phone_number, tx.amount)
     } else {
       qrCodeData.value = `pay-${tx.to}-${tx.amount}` // Fallback generic string
     }
