@@ -52,7 +52,17 @@
     "welcomeBack": "Welcome back,",
     "youAreOwed": "You are owed",
     "youOwe": "You owe",
-    "recentActivity": "Recent Activity"
+    "recentActivity": "Recent Activity",
+    "whoOwesMe": "Who Owes Me",
+    "whoIOwe": "Who I Owe",
+    "noOneOwesYou": "No one owes you",
+    "totalOwed": "Total Owed",
+    "amount": "Amount",
+    "noDebts": "No Debts",
+    "justNow": "Just now",
+    "minsAgo": "mins ago",
+    "hoursAgo": "hours ago",
+    "daysAgo": "days ago"
   },
   "profile": {
     "title": "My Profile",
@@ -92,7 +102,8 @@
     "save": "Save",
     "cancel": "Cancel",
     "confirm": "Confirm",
-    "uploading": "Uploading..."
+    "uploading": "Uploading...",
+    "viewAll": "View All"
   },
   "addMeal": {
     "title": "Add New Expense",
