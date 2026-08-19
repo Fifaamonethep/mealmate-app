@@ -21,7 +21,7 @@ export const useAppStore = defineStore('app', () => {
   // Theme state
   const isDark = ref(
     getStorage('theme', null) === 'dark' || 
-    (getStorage('theme', null) === null && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    (getStorage('theme', null) === null && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
   )
   
   // Language state (lo → la)
