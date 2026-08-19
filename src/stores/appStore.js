@@ -3,22 +3,37 @@ import { ref, watch } from 'vue'
 import i18n from '../i18n'
 
 export const useAppStore = defineStore('app', () => {
+  // Helper for localStorage
+  const getStorage = (key, defaultVal) => {
+    try {
+      return localStorage.getItem(key) || defaultVal
+    } catch {
+      return defaultVal
+    }
+  }
+
+  const setStorage = (key, val) => {
+    try {
+      localStorage.setItem(key, val)
+    } catch {}
+  }
+
   // Theme state
   const isDark = ref(
-    localStorage.getItem('theme') === 'dark' || 
-    (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    getStorage('theme', null) === 'dark' || 
+    (getStorage('theme', null) === null && window.matchMedia('(prefers-color-scheme: dark)').matches)
   )
   
   // Language state (lo → la)
-  const currentLang = ref(localStorage.getItem('language') || 'th')
+  const currentLang = ref(getStorage('language', 'th'))
 
   const applyTheme = () => {
     if (isDark.value) {
       document.documentElement.classList.add('dark')
-      localStorage.setItem('theme', 'dark')
+      setStorage('theme', 'dark')
     } else {
       document.documentElement.classList.remove('dark')
-      localStorage.setItem('theme', 'light')
+      setStorage('theme', 'light')
     }
   }
 
@@ -30,7 +45,7 @@ export const useAppStore = defineStore('app', () => {
   const setLanguage = (lang) => {
     currentLang.value = lang
     i18n.global.locale.value = lang
-    localStorage.setItem('language', lang)
+    setStorage('language', lang)
   }
 
   // Apply theme immediately on store creation
