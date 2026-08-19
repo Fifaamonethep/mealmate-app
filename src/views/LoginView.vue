@@ -228,7 +228,7 @@ const handleVerifyOtp = async () => {
       if (authStore.needsOnboarding) {
         router.push('/onboarding')
       } else {
-        sessionStorage.setItem('show_summary_poster', 'true')
+        try { sessionStorage.setItem('show_summary_poster', 'true') } catch(e) {}
         router.push('/')
       }
     }
@@ -247,7 +247,7 @@ const handlePasswordLogin = async () => {
     if (authStore.needsOnboarding) {
       router.push('/onboarding')
     } else {
-      sessionStorage.setItem('show_summary_poster', 'true')
+      try { sessionStorage.setItem('show_summary_poster', 'true') } catch(e) {}
       router.push('/')
     }
   } catch (error) {
@@ -287,7 +287,7 @@ const handleUpdatePassword = async () => {
   errorMsg.value = ''
   try {
     await authStore.updatePassword(password.value)
-    sessionStorage.setItem('show_summary_poster', 'true')
+    try { sessionStorage.setItem('show_summary_poster', 'true') } catch(e) {}
     router.push('/')
   } catch (error) {
     errorMsg.value = error.message

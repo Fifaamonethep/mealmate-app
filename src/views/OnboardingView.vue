@@ -71,9 +71,8 @@ const handleSaveName = async () => {
     authStore.user.fullName = fullName.value.trim()
     authStore.needsOnboarding = false
     
-    // Set flag for summary poster
-    sessionStorage.setItem('show_summary_poster', 'true')
-    
+    await authStore.initializeAuth() // Refresh user data
+    try { sessionStorage.setItem('show_summary_poster', 'true') } catch(e) {}
     router.push('/')
   } catch (error) {
     errorMsg.value = error.message

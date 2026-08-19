@@ -106,7 +106,12 @@ const authStore = useAuthStore()
 
 onMounted(async () => {
   // Check if we need to show the poster
-  if (sessionStorage.getItem('show_summary_poster') === 'true') {
+  let showPoster = false
+  try {
+    showPoster = sessionStorage.getItem('show_summary_poster') === 'true'
+  } catch(e) {}
+
+  if (showPoster) {
     isOpen.value = true
     await debtsStore.fetchSettlements()
   }
@@ -124,7 +129,9 @@ const othersOwe = computed(() => transactions.value.filter(tx => tx.toId === aut
 
 const closeModal = () => {
   isOpen.value = false
-  sessionStorage.removeItem('show_summary_poster')
+  try {
+    sessionStorage.removeItem('show_summary_poster')
+  } catch(e) {}
 }
 
 const remindDebtor = (name) => {
