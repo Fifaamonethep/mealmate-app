@@ -28,7 +28,10 @@
           </div>
           <div>
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{{ $t('auth.email') }}</label>
-            <input v-model="email" type="email" required class="input-field">
+            <input v-model="email" type="email" required class="input-field" list="email-domains-signup">
+            <datalist id="email-domains-signup">
+              <option v-for="suggestion in emailSuggestions" :key="suggestion" :value="suggestion"></option>
+            </datalist>
           </div>
           <div>
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{{ $t('auth.password') }}</label>
@@ -95,7 +98,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import { UserPlus, Loader2, Eye, EyeOff, LogIn } from 'lucide-vue-next'
@@ -110,6 +113,13 @@ const fullName = ref('')
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
+
+const domains = ['@gmail.com', '@email.com', '@gmail.com.la', '@yahoo.com', '@hotmail.com', '@outlook.com']
+const emailSuggestions = computed(() => {
+  if (!email.value || !email.value.includes('@')) return []
+  const prefix = email.value.split('@')[0]
+  return domains.map(d => prefix + d)
+})
 
 const otp = ref(['', '', '', '', '', ''])
 const otpRefs = ref([])

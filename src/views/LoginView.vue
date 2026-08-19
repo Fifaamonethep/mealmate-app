@@ -39,7 +39,10 @@
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{{ $t('auth.email') }}</label>
-            <input v-model="email" type="email" required class="input-field" placeholder="you@example.com">
+            <input v-model="email" type="email" required class="input-field" placeholder="you@example.com" list="email-domains">
+            <datalist id="email-domains">
+              <option v-for="suggestion in emailSuggestions" :key="suggestion" :value="suggestion"></option>
+            </datalist>
           </div>
         </div>
 
@@ -116,7 +119,7 @@
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{{ $t('auth.email') }}</label>
-            <input v-model="email" type="email" required class="input-field" placeholder="you@example.com">
+            <input v-model="email" type="email" required class="input-field" placeholder="you@example.com" list="email-domains">
           </div>
           <div>
             <div class="flex justify-between mb-1">
@@ -170,7 +173,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import { useI18n } from 'vue-i18n'
@@ -185,6 +188,13 @@ const step = ref(1)
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
+
+const domains = ['@gmail.com', '@email.com', '@gmail.com.la', '@yahoo.com', '@hotmail.com', '@outlook.com']
+const emailSuggestions = computed(() => {
+  if (!email.value || !email.value.includes('@')) return []
+  const prefix = email.value.split('@')[0]
+  return domains.map(d => prefix + d)
+})
 
 const otp = ref(['', '', '', '', '', ''])
 const otpRefs = ref([])
