@@ -153,8 +153,15 @@
             </div>
 
             <div class="flex justify-center mb-8">
-              <div class="p-4 bg-white rounded-3xl shadow-sm border border-gray-100 inline-block">
-                <QrcodeVue v-if="qrCodeData" :value="qrCodeData" :size="200" level="H" />
+              <div class="p-4 bg-white rounded-3xl shadow-sm border border-gray-100 inline-block relative">
+                <div v-if="qrCodeData" class="relative">
+                  <img v-if="qrCodeData.startsWith('http')" :src="qrCodeData" class="w-[200px] h-[200px] object-contain rounded-xl shadow-sm" alt="Payment QR" crossorigin="anonymous" />
+                  <QrcodeVue v-else :value="qrCodeData" :size="200" level="H" id="payment-qr-canvas" />
+                  
+                  <button @click.prevent="downloadQR" class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 px-4 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center hover:scale-105 transition-transform whitespace-nowrap z-10">
+                    <Download class="w-3 h-3 mr-1" /> Save QR
+                  </button>
+                </div>
                 <div v-else class="w-[200px] h-[200px] flex items-center justify-center text-gray-400 bg-gray-50 rounded-xl font-bold text-sm">No QR Data</div>
               </div>
             </div>
@@ -185,7 +192,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useDebtsStore } from '../stores/debts'
 import { useAuthStore } from '../stores/authStore'
-import { CreditCard, Share2, ArrowUpRight, ArrowDownLeft, Filter, QrCode, X, UploadCloud, Loader2, CheckCircle2, Clock, Check } from 'lucide-vue-next'
+import { CreditCard, Share2, ArrowUpRight, ArrowDownLeft, Filter, QrCode, X, UploadCloud, Loader2, CheckCircle2, Clock, Check, Download } from 'lucide-vue-next'
 import { supabase } from '../lib/supabase'
 import QrcodeVue from 'qrcode.vue'
 import { generateLaoQR } from '../utils/laoQr'
@@ -278,6 +285,37 @@ const closePaymentModal = () => {
   }, 300)
 }
 
+const downloadQR = async () => {
+  if (!qrCodeData.value) return;
+  const fileName = `Payment_QR_${selectedTx.value?.to || 'User'}.png`;
+
+  if (qrCodeData.value.startsWith('http')) {
+    try {
+      const resp = await fetch(qrCodeData.value);
+      const blob = await resp.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      alert('Failed to download image. Try taking a screenshot.');
+    }
+  } else {
+    const canvas = document.getElementById('payment-qr-canvas');
+    if (canvas) {
+      const url = canvas.toDataURL("image/png");
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+    }
+  }
+}
+
 const handleGuestPayment = async (tx) => {
   if (confirm(`Mark ${tx.amount} LAK as paid by ${tx.fromRawGuestName}? (Cash / Outside App)`)) {
     await debtsStore.settleGuestDebt(tx.fromRawGuestName, tx.amount)
@@ -297,12 +335,12 @@ const handleFileUpload = async (event) => {
     const fileName = `${Date.now()}_${fromId}_to_${toId}.${fileExt}`
     
     const { error: uploadError } = await supabase.storage
-      .from('slips')
+      .from('receipts')
       .upload(fileName, file)
       
     if (uploadError) throw uploadError
 
-    const { data: publicUrlData } = supabase.storage.from('slips').getPublicUrl(fileName)
+    const { data: publicUrlData } = supabase.storage.from('receipts').getPublicUrl(fileName)
     const publicUrl = publicUrlData.publicUrl
 
     const { error } = await supabase.from('payments').insert([{
