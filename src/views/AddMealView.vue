@@ -66,7 +66,9 @@
           </div>
           <select v-if="form.payerType === 'single'" v-model="form.payerId" class="input-field rounded-2xl w-full bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 mt-3 text-sm">
             <option :value="authStore.user?.id">{{ authStore.user?.fullName }} (You)</option>
-            <!-- Add other members if group is selected -->
+            <option v-for="member in groupMembers" :key="member.id" :value="member.id" v-show="member.id !== authStore.user?.id">
+              {{ member.name }}
+            </option>
           </select>
         </div>
 
@@ -160,7 +162,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import { supabase } from '../lib/supabase'
@@ -209,6 +211,32 @@ const addGuest = () => {
   }
 }
 
+const groupMembers = ref([])
+
+watch(() => form.value.groupId, async (newGroupId) => {
+  // Reset participants to just user + manually added guests
+  participants.value = participants.value.filter(p => p.isGuest || p.id === authStore.user?.id)
+  groupMembers.value = []
+
+  if (newGroupId) {
+    const { data: members } = await supabase
+      .from('group_members')
+      .select('user_id, profiles(full_name)')
+      .eq('group_id', newGroupId)
+      
+    if (members && members.length > 0) {
+      members.forEach(m => {
+        const memberObj = { id: m.user_id, name: m.profiles?.full_name, isGuest: false }
+        groupMembers.value.push(memberObj)
+        // Add to participants if not already there
+        if (!participants.value.some(p => p.id === m.user_id)) {
+          participants.value.push(memberObj)
+        }
+      })
+    }
+  }
+})
+
 const removeParticipant = (index) => {
   participants.value.splice(index, 1)
 }
@@ -254,23 +282,7 @@ const saveMeal = async () => {
     if (mealError) throw mealError
 
     // 3. Prepare Participants
-    let finalParticipants = [...participants.value.filter(p => p.isGuest)] // Keep manually added guests
-    
-    if (form.value.groupId) {
-      // Fetch group members
-      const { data: members } = await supabase.from('group_members').select('user_id, profiles(full_name)').eq('group_id', form.value.groupId)
-      if (members && members.length > 0) {
-        members.forEach(m => {
-          if (!finalParticipants.some(p => p.id === m.user_id)) {
-            finalParticipants.push({ id: m.user_id, name: m.profiles?.full_name, isGuest: false })
-          }
-        })
-      } else {
-        if (!finalParticipants.some(p => p.id === authStore.user.id)) finalParticipants.push({ id: authStore.user.id, name: authStore.user.fullName, isGuest: false })
-      }
-    } else {
-      finalParticipants = [...participants.value] // Solo meal + guests
-    }
+    let finalParticipants = [...participants.value]
 
     const splitAmount = form.value.totalAmount / Math.max(1, finalParticipants.length)
 
