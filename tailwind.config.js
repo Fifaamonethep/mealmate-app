@@ -36,7 +36,7 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Prompt', '"Noto Sans Lao"', 'system-ui', 'sans-serif'],
+        sans: ['"Noto Sans Lao"', 'Prompt', 'system-ui', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-out',

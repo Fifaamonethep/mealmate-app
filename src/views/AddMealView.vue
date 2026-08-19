@@ -8,7 +8,7 @@
           <div class="w-6 h-6 rounded-full border-2 border-primary-500 text-primary-500 flex items-center justify-center mr-2">
             <Plus class="w-4 h-4" />
           </div>
-          Create Meal & Split Expense
+          {{ isEditing ? 'Edit Meal & Split Expense' : 'Create Meal & Split Expense' }}
         </h3>
         <button @click="router.back()" class="p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
           <X class="w-4 h-4 text-gray-600 dark:text-gray-300" />
@@ -165,7 +165,7 @@
         <button @click="saveMeal" :disabled="isSaving || !form.title || !form.totalAmount" class="bg-primary-500 hover:bg-primary-600 text-white px-8 py-3 rounded-2xl font-bold shadow-[0_8px_30px_rgba(16,185,129,0.3)] transition-transform active:scale-95 flex items-center disabled:opacity-50">
           <Loader2 v-if="isSaving" class="w-5 h-5 mr-2 animate-spin" />
           <Receipt v-else class="w-5 h-5 mr-2" />
-          Create & Split Meal
+          {{ isEditing ? 'Update & Split Meal' : 'Create & Split Meal' }}
         </button>
       </div>
 
@@ -199,12 +199,13 @@
 
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import { supabase } from '../lib/supabase'
 import { Plus, X, Camera, Users, Receipt, Loader2, Image } from 'lucide-vue-next'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 const isSaving = ref(false)
@@ -212,6 +213,8 @@ const showSuccessModal = ref(false)
 const errorMessage = ref('')
 const groups = ref([])
 const receiptImage = ref(null)
+const isEditing = ref(false)
+const editMealId = ref(null)
 
 const form = ref({
   title: '',
@@ -227,8 +230,40 @@ onMounted(async () => {
   try {
     const { data } = await supabase.from('groups').select('id, name')
     groups.value = data || []
+    
+    if (route.query.editMealId) {
+      isEditing.value = true
+      editMealId.value = route.query.editMealId
+      
+      const { data: mealData, error: mealErr } = await supabase.from('meals').select('*').eq('id', editMealId.value).single()
+      if (mealErr) throw mealErr
+
+      form.value.title = mealData.title
+      form.value.totalAmount = parseFloat(mealData.total_cost)
+      form.value.currency = mealData.currency
+      form.value.groupId = mealData.group_id || ''
+      form.value.payerId = mealData.payer_id
+      form.value.payerType = mealData.payer_type
+      form.value.splitMethod = mealData.split_method
+      if (mealData.receipt_url) {
+        receiptImage.value = mealData.receipt_url
+      }
+
+      const { data: partsData } = await supabase.from('meal_participants').select('*, profiles:user_id(full_name)').eq('meal_id', editMealId.value)
+      
+      if (partsData && partsData.length > 0) {
+        participants.value = partsData.map(p => ({
+          id: p.user_id,
+          name: p.user_id ? p.profiles?.full_name : p.guest_name,
+          isGuest: !p.user_id,
+          amount_owed: parseFloat(p.amount_owed)
+        }))
+      }
+    } else if (route.query.groupId) {
+      form.value.groupId = route.query.groupId
+    }
   } catch (err) {
-    console.error("Failed to load groups", err)
+    console.error("Failed to load data", err)
   }
 })
 
@@ -258,7 +293,9 @@ const addGuest = () => {
 
 const groupMembers = ref([])
 
-watch(() => form.value.groupId, async (newGroupId) => {
+watch(() => form.value.groupId, async (newGroupId, oldGroupId) => {
+  if (isEditing.value && oldGroupId === undefined) return // Skip wiping participants on initial load
+  
   // Reset participants to just user + manually added guests
   participants.value = participants.value.filter(p => p.isGuest || p.id === authStore.user?.id)
   groupMembers.value = []
@@ -311,8 +348,8 @@ const saveMeal = async () => {
       receiptUrl = data.publicUrl
     }
 
-    // 2. Insert Meal
-    const { data: mealData, error: mealError } = await supabase.from('meals').insert({
+    // 2. Insert or Update Meal
+    const mealPayload = {
       title: form.value.title,
       total_cost: form.value.totalAmount,
       currency: form.value.currency,
@@ -320,11 +357,21 @@ const saveMeal = async () => {
       payer_id: form.value.payerId,
       payer_type: form.value.payerType,
       split_method: form.value.splitMethod,
-      receipt_url: receiptUrl,
       created_by: authStore.user.id
-    }).select().single()
+    }
+    if (receiptUrl) mealPayload.receipt_url = receiptUrl
 
-    if (mealError) throw mealError
+    let mealId = null
+    if (isEditing.value) {
+      const { data: updateData, error: updateError } = await supabase.from('meals').update(mealPayload).eq('id', editMealId.value).select().single()
+      if (updateError) throw updateError
+      mealId = updateData.id
+      await supabase.from('meal_participants').delete().eq('meal_id', mealId)
+    } else {
+      const { data: insertData, error: insertError } = await supabase.from('meals').insert(mealPayload).select().single()
+      if (insertError) throw insertError
+      mealId = insertData.id
+    }
 
     // 3. Prepare Participants
     let finalParticipants = [...participants.value]
@@ -342,7 +389,7 @@ const saveMeal = async () => {
     const equalSplitAmount = form.value.totalAmount / Math.max(1, finalParticipants.length)
 
     const pRecords = finalParticipants.map(p => ({
-      meal_id: mealData.id,
+      meal_id: mealId,
       user_id: p.id,
       guest_name: p.isGuest ? p.name : null,
       amount_owed: form.value.splitMethod === 'custom' ? (p.amount_owed || 0) : equalSplitAmount
@@ -353,7 +400,7 @@ const saveMeal = async () => {
 
     showSuccessModal.value = true
     setTimeout(() => {
-      router.push('/meals')
+      router.back() // Go back to wherever they came from (Meals List or Group Details)
     }, 2000)
   } catch (err) {
     errorMessage.value = err.message

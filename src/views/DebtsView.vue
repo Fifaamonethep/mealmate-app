@@ -38,7 +38,7 @@
         <Filter class="w-4 h-4 mr-1" />
         Filter status:
       </div>
-      <button v-for="status in ['All', 'Unpaid', 'Slip Sent', 'Completed']" :key="status"
+      <button v-for="status in ['All', 'Pending', 'Waiting for Approval', 'Paid']" :key="status"
         @click="filterStatus = status"
         :class="['px-4 py-1.5 rounded-xl text-sm font-bold whitespace-nowrap transition-colors border', 
           filterStatus === status ? 'bg-primary-500 text-white border-primary-500' : 'bg-transparent text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800']">
@@ -88,17 +88,17 @@
             <!-- Amount & Status Badge -->
             <div class="text-right">
               <p :class="['text-xl font-black tracking-tight mb-1', debtType === 'i_owe' ? 'text-red-500' : 'text-green-500']">
-                {{ debtType === 'i_owe' ? '-' : '+' }}{{ tx.amount.toLocaleString() }} ฿
+                {{ debtType === 'i_owe' ? '-' : '+' }}{{ tx.amount.toLocaleString() }} LAK
               </p>
               
               <span v-if="tx.status === 'SLIP_SENT'" class="inline-flex items-center px-2.5 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 text-[10px] font-bold rounded-lg uppercase tracking-wider">
-                <Clock class="w-3 h-3 mr-1" /> Slip Sent
+                <Clock class="w-3 h-3 mr-1" /> Waiting for Approval
               </span>
               <span v-else-if="tx.status === 'COMPLETED'" class="inline-flex items-center px-2.5 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 text-[10px] font-bold rounded-lg uppercase tracking-wider">
-                <Check class="w-3 h-3 mr-1" /> Completed
+                <Check class="w-3 h-3 mr-1" /> Paid
               </span>
               <span v-else class="inline-flex items-center px-2.5 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-[10px] font-bold rounded-lg uppercase tracking-wider">
-                Unpaid
+                Pending
               </span>
             </div>
           </div>
@@ -109,14 +109,14 @@
             <button v-if="debtType === 'i_owe' && !tx.toIsGuest && tx.status !== 'SLIP_SENT' && tx.status !== 'COMPLETED'" 
               @click="openPaymentModal(tx)" 
               class="bg-primary-500 hover:bg-primary-600 text-white px-6 py-2 rounded-xl font-bold shadow-sm transition-transform active:scale-95 flex items-center">
-              <QrCode class="w-4 h-4 mr-2" /> Pay Now
+              <QrCode class="w-4 h-4 mr-2" /> Mark as Paid
             </button>
             
             <!-- Others Owe Me (normal user) -->
             <button v-if="debtType === 'others_owe' && !tx.fromIsGuest && tx.status === 'SLIP_SENT'" 
               @click="debtsStore.verifyPayment(tx.paymentId)"
               class="bg-primary-500 hover:bg-primary-600 text-white px-6 py-2 rounded-xl font-bold shadow-sm transition-transform active:scale-95 flex items-center">
-              <CheckCircle2 class="w-4 h-4 mr-2" /> Verify Slip
+              <CheckCircle2 class="w-4 h-4 mr-2" /> Confirm Payment
             </button>
 
             <!-- Others Owe Me (Guest) -->
@@ -148,13 +148,14 @@
           <div class="p-6 flex-grow overflow-y-auto">
             <div class="text-center mb-6">
               <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Transfer exactly</p>
-              <p class="text-4xl font-black text-primary-600 dark:text-primary-400">{{ selectedTx?.amount.toFixed(2) }} ฿</p>
+              <p class="text-4xl font-black text-primary-600 dark:text-primary-400">{{ selectedTx?.amount.toLocaleString() }} LAK</p>
               <p class="text-sm font-bold text-gray-700 dark:text-gray-300 mt-2">to {{ selectedTx?.to }}</p>
             </div>
 
             <div class="flex justify-center mb-8">
               <div class="p-4 bg-white rounded-3xl shadow-sm border border-gray-100 inline-block">
-                <img :src="selectedTx?.qrCodeUrl" alt="QR Code" class="w-48 h-48 object-cover">
+                <QrcodeVue v-if="qrCodeData" :value="qrCodeData" :size="200" level="H" />
+                <div v-else class="w-[200px] h-[200px] flex items-center justify-center text-gray-400 bg-gray-50 rounded-xl font-bold text-sm">No QR Data</div>
               </div>
             </div>
 
@@ -186,6 +187,8 @@ import { useDebtsStore } from '../stores/debts'
 import { useAuthStore } from '../stores/authStore'
 import { CreditCard, Share2, ArrowUpRight, ArrowDownLeft, Filter, QrCode, X, UploadCloud, Loader2, CheckCircle2, Clock, Check } from 'lucide-vue-next'
 import { supabase } from '../lib/supabase'
+import QrcodeVue from 'qrcode.vue'
+import { generateLaoQR } from '../utils/laoQr'
 
 const debtsStore = useDebtsStore()
 const authStore = useAuthStore()
@@ -216,11 +219,11 @@ const filteredTransactions = computed(() => {
 
   // Filter by Status
   if (filterStatus.value !== 'All') {
-    if (filterStatus.value === 'Unpaid') {
-       list = list.filter(tx => !tx.status || tx.status === 'UNPAID')
-    } else if (filterStatus.value === 'Slip Sent') {
+    if (filterStatus.value === 'Pending') {
+       list = list.filter(tx => !tx.status || tx.status === 'UNPAID' || tx.status === 'PENDING')
+    } else if (filterStatus.value === 'Waiting for Approval') {
        list = list.filter(tx => tx.status === 'SLIP_SENT')
-    } else if (filterStatus.value === 'Completed') {
+    } else if (filterStatus.value === 'Paid') {
        list = list.filter(tx => tx.status === 'COMPLETED')
     }
   }
@@ -237,28 +240,32 @@ const isModalOpen = ref(false)
 const selectedTx = ref(null)
 const isUploading = ref(false)
 const uploadSuccess = ref(false)
+const qrCodeData = ref('')
 
 const openPaymentModal = async (tx) => {
   selectedTx.value = tx
   uploadSuccess.value = false
   isModalOpen.value = true
+  qrCodeData.value = ''
   
-  // Fetch Creditor's QR Code
+  // Fetch Creditor's info (Phone number for LAO QR)
   try {
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('qr_code_url')
+      .select('phone_number, qr_code_url')
       .eq('full_name', tx.to)
       .single()
       
-    if (profiles && profiles.qr_code_url) {
-      selectedTx.value.qrCodeUrl = profiles.qr_code_url
+    if (profiles && profiles.phone_number) {
+      qrCodeData.value = generateLaoQR(profiles.phone_number, tx.amount)
+    } else if (profiles && profiles.qr_code_url) {
+      qrCodeData.value = profiles.qr_code_url
     } else {
-      selectedTx.value.qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=pay-${tx.to}-${tx.amount}`
+      qrCodeData.value = `pay-${tx.to}-${tx.amount}` // Fallback generic string
     }
   } catch (err) {
-    console.error("Error fetching QR:", err)
-    selectedTx.value.qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=pay-${tx.to}-${tx.amount}`
+    console.error("Error fetching QR/Phone:", err)
+    qrCodeData.value = `pay-${tx.to}-${tx.amount}`
   }
 }
 
@@ -272,7 +279,7 @@ const closePaymentModal = () => {
 }
 
 const handleGuestPayment = async (tx) => {
-  if (confirm(`Mark ${tx.amount} ฿ as paid by ${tx.fromRawGuestName}? (Cash / Outside App)`)) {
+  if (confirm(`Mark ${tx.amount} LAK as paid by ${tx.fromRawGuestName}? (Cash / Outside App)`)) {
     await debtsStore.settleGuestDebt(tx.fromRawGuestName, tx.amount)
   }
 }
