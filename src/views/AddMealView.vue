@@ -201,12 +201,14 @@
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
+import { useNotificationsStore } from '../stores/notificationsStore'
 import { supabase } from '../lib/supabase'
 import { Plus, X, Camera, Users, Receipt, Loader2, Image } from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const notifStore = useNotificationsStore()
 
 const isSaving = ref(false)
 const showSuccessModal = ref(false)
@@ -397,6 +399,18 @@ const saveMeal = async () => {
 
     const { error: partError } = await supabase.from('meal_participants').insert(pRecords)
     if (partError) throw partError
+
+    // Send notifications to participants (who are registered users, not guests, and not the creator)
+    for (const p of pRecords) {
+      if (p.user_id && p.user_id !== authStore.user.id) {
+        await notifStore.sendNotification(
+          p.user_id,
+          'MEAL_ADDED',
+          `<b>${authStore.user?.user_metadata?.full_name || authStore.user?.fullName || 'Someone'}</b> ${isEditing.value ? 'updated' : 'added'} the meal <b>${form.value.title}</b>. You owe <b>${parseFloat(p.amount_owed).toLocaleString()} ${form.value.currency}</b>.`,
+          mealId
+        )
+      }
+    }
 
     showSuccessModal.value = true
     setTimeout(() => {

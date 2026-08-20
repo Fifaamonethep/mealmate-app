@@ -199,8 +199,10 @@ import { ref, onMounted, computed } from 'vue'
 import { Users, Plus, Loader2, X, User, Crown, Receipt, ArrowRight, Image } from 'lucide-vue-next'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../stores/authStore'
+import { useNotificationsStore } from '../stores/notificationsStore'
 
 const authStore = useAuthStore()
+const notifStore = useNotificationsStore()
 const groups = ref([])
 const friends = ref([])
 const isLoading = ref(true)
@@ -354,6 +356,15 @@ const createGroup = async () => {
 
     const { error: membersError } = await supabase.from('group_members').insert(memberRecords)
     if (membersError && membersError.code !== '42P01') throw membersError
+
+    // Send notifications to friends
+    for (const friendId of newGroup.value.members) {
+      await notifStore.sendNotification(
+        friendId,
+        'GROUP_INVITE',
+        `<b>${authStore.user?.user_metadata?.full_name || authStore.user?.fullName || 'Someone'}</b> added you to the group <b>${newGroup.value.name}</b>.`
+      )
+    }
 
     isCreatingGroup.value = false
     newGroup.value = { name: '', description: '', avatarPreset: 1, avatarFile: null, avatarUrlPreview: null, members: [] }
