@@ -8,20 +8,20 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['mealmate_logo.png'],
+      includeAssets: ['logo-mealmate.png'],
       manifest: {
         name: 'MealMate',
         short_name: 'MealMate',
         description: 'Split bills with friends easily. Track group expenses, settle debts with QR payments.',
-        theme_color: '#16a34a',
+        theme_color: '#6ae6a8',
         icons: [
           {
-            src: '/mealmate_logo.png',
+            src: '/logo-mealmate.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: '/mealmate_logo.png',
+            src: '/logo-mealmate.png',
             sizes: '512x512',
             type: 'image/png'
           }
