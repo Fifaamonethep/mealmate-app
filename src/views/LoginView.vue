@@ -88,6 +88,12 @@
             {{ isLoading ? $t('auth.verifying') : $t('auth.verifyOtpBtn') }}
           </button>
         </div>
+
+        <div class="mt-4 text-center">
+          <button type="button" @click="handleResendOtp" :disabled="countdown > 0 || isLoading" class="text-sm font-bold transition-colors" :class="countdown > 0 ? 'text-gray-400 cursor-not-allowed' : 'text-primary-600 hover:text-primary-500 active:scale-95'">
+            Resend OTP <span v-if="countdown > 0">({{ countdown }}s)</span>
+          </button>
+        </div>
       </form>
 
       <!-- Step 3: Set New Password -->
@@ -173,7 +179,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick, computed } from 'vue'
+import { ref, nextTick, computed, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import { useI18n } from 'vue-i18n'
@@ -201,6 +207,23 @@ const otpRefs = ref([])
 const isLoading = ref(false)
 const errorMsg = ref('')
 const successMsg = ref('')
+const countdown = ref(0)
+let timer = null
+
+const startCountdown = () => {
+  countdown.value = 30
+  if (timer) clearInterval(timer)
+  timer = setInterval(() => {
+    countdown.value--
+    if (countdown.value <= 0) {
+      clearInterval(timer)
+    }
+  }, 1000)
+}
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
 
 const handleSendOtp = async () => {
   if (!email.value) return
@@ -211,6 +234,7 @@ const handleSendOtp = async () => {
     await authStore.loginWithOtp(email.value)
     successMsg.value = t('auth.otpSent')
     step.value = 2
+    startCountdown()
     nextTick(() => {
       if (otpRefs.value[0]) otpRefs.value[0].focus()
     })
@@ -285,6 +309,7 @@ const handleForgotPassword = async () => {
     loginMethod.value = 'forgot_password'
     step.value = 2
     otp.value = ['', '', '', '', '', '']
+    startCountdown()
     nextTick(() => {
       if (otpRefs.value[0]) otpRefs.value[0].focus()
     })
@@ -338,6 +363,30 @@ const handleGoogle = async () => {
     await authStore.loginWithGoogle()
   } catch (error) {
     errorMsg.value = error.message
+  }
+}
+
+const handleResendOtp = async () => {
+  if (countdown.value > 0) return
+  isLoading.value = true
+  errorMsg.value = ''
+  successMsg.value = ''
+  try {
+    if (loginMethod.value === 'forgot_password') {
+      await authStore.resetPassword(email.value)
+    } else {
+      await authStore.loginWithOtp(email.value)
+    }
+    successMsg.value = "OTP Resent! Please check your email."
+    startCountdown()
+  } catch (error) {
+    if (error.message?.includes('Signups not allowed')) {
+      errorMsg.value = "Email not found. Please sign up first."
+    } else {
+      errorMsg.value = error.message
+    }
+  } finally {
+    isLoading.value = false
   }
 }
 </script>

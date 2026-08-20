@@ -88,12 +88,14 @@ export const useAuthStore = defineStore('authStore', () => {
         // Profile doesn't exist yet
         const { data: { user: authUser } } = await supabase.auth.getUser()
         if (authUser) {
+          const isAdmin = authUser.email === 'amonethep16@gmail.com'
+          
           const newProfile = {
             id: authUser.id,
             full_name: authUser.user_metadata?.full_name || authUser.user_metadata?.name || 'New User',
             username: authUser.email?.split('@')[0] || `user_${Date.now()}`,
             avatar_url: authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || '',
-            role: 'user'
+            role: isAdmin ? 'admin' : 'user'
           }
           
           await supabase.from('profiles').insert(newProfile)
@@ -122,10 +124,12 @@ export const useAuthStore = defineStore('authStore', () => {
     }
     
     if (data.user) {
+      const isAdmin = email === 'amonethep16@gmail.com'
       await supabase.from('profiles').insert({
         id: data.user.id,
         full_name: fullName,
-        username: email.split('@')[0]
+        username: email.split('@')[0],
+        role: isAdmin ? 'admin' : 'user'
       })
       await fetchProfile(data.user.id)
       initializePresence(data.user.id)
@@ -159,6 +163,15 @@ export const useAuthStore = defineStore('authStore', () => {
       options: {
         shouldCreateUser: false
       }
+    })
+    if (error) throw error
+    return data
+  }
+
+  const resendOtp = async (email, type = 'signup') => {
+    const { data, error } = await supabase.auth.resend({
+      type: type,
+      email: email,
     })
     if (error) throw error
     return data
@@ -200,6 +213,7 @@ export const useAuthStore = defineStore('authStore', () => {
     loginWithPassword, 
     loginWithGoogle,
     loginWithOtp,
+    resendOtp,
     verifyOtp,
     logout,
     resetPassword,

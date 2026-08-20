@@ -87,6 +87,12 @@
             {{ isLoading ? $t('auth.verifying') : $t('auth.verifyOtpBtn') }}
           </button>
         </div>
+
+        <div class="mt-4 text-center">
+          <button type="button" @click="handleResendOtp" :disabled="countdown > 0 || isLoading" class="text-sm font-bold transition-colors" :class="countdown > 0 ? 'text-gray-400 cursor-not-allowed' : 'text-primary-600 hover:text-primary-500 active:scale-95'">
+            Resend OTP <span v-if="countdown > 0">({{ countdown }}s)</span>
+          </button>
+        </div>
       </form>
 
       <p class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400" data-aos="fade-up" data-aos-delay="200">
@@ -98,7 +104,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick, computed } from 'vue'
+import { ref, nextTick, computed, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import { UserPlus, Loader2, Eye, EyeOff, LogIn } from 'lucide-vue-next'
@@ -126,6 +132,23 @@ const otpRefs = ref([])
 const isLoading = ref(false)
 const errorMsg = ref('')
 const successMsg = ref('')
+const countdown = ref(0)
+let timer = null
+
+const startCountdown = () => {
+  countdown.value = 30
+  if (timer) clearInterval(timer)
+  timer = setInterval(() => {
+    countdown.value--
+    if (countdown.value <= 0) {
+      clearInterval(timer)
+    }
+  }, 1000)
+}
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
 
 const handleSignup = async () => {
   isLoading.value = true
@@ -135,6 +158,7 @@ const handleSignup = async () => {
     await authStore.signUp(email.value, password.value, fullName.value)
     successMsg.value = t('auth.otpSent')
     step.value = 2
+    startCountdown()
     nextTick(() => {
       if (otpRefs.value[0]) otpRefs.value[0].focus()
     })
@@ -144,6 +168,22 @@ const handleSignup = async () => {
     } else {
       errorMsg.value = error.message
     }
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const handleResendOtp = async () => {
+  if (countdown.value > 0) return
+  isLoading.value = true
+  errorMsg.value = ''
+  successMsg.value = ''
+  try {
+    await authStore.resendOtp(email.value, 'signup')
+    successMsg.value = "OTP Resent! Please check your email."
+    startCountdown()
+  } catch (error) {
+    errorMsg.value = error.message
   } finally {
     isLoading.value = false
   }
