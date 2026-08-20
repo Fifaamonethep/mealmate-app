@@ -8,7 +8,7 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['mealmate-logo.png'],
+      includeAssets: ['mealmate_logo.png'],
       manifest: {
         name: 'MealMate',
         short_name: 'MealMate',
@@ -16,12 +16,12 @@ export default defineConfig({
         theme_color: '#16a34a',
         icons: [
           {
-            src: '/mealmate-logo.png',
+            src: '/mealmate_logo.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: '/mealmate-logo.png',
+            src: '/mealmate_logo.png',
             sizes: '512x512',
             type: 'image/png'
           }
