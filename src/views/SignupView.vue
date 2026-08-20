@@ -1,13 +1,13 @@
 <template>
-  <div class="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8 card p-8 animate-scale-in">
+  <div class="h-[100dvh] flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden fixed inset-0">
+    <div class="max-w-md w-full space-y-4 card p-6 sm:p-8 animate-scale-in max-h-screen">
       
       <div class="text-center" data-aos="fade-down">
-        <div class="w-28 h-28 mx-auto mb-2 flex items-center justify-center">
+        <div class="w-24 h-24 mx-auto mb-2 flex items-center justify-center">
           <AppLogo customClass="w-full h-full object-contain drop-shadow-md" />
         </div>
-        <h2 class="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">{{ $t('auth.createAccount') }}</h2>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+        <h2 class="mt-2 text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">{{ $t('auth.createAccount') }}</h2>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
           {{ step === 1 ? $t('auth.createSubtitle') : $t('auth.enterOtpSubtitle') }}
         </p>
       </div>
@@ -20,7 +20,7 @@
         {{ successMsg }}
       </div>
 
-      <form v-if="step === 1" class="mt-8 space-y-6" @submit.prevent="handleSignup" data-aos="fade-up" data-aos-delay="100">
+      <form v-if="step === 1" class="mt-4 space-y-4" @submit.prevent="handleSignup" data-aos="fade-up" data-aos-delay="100">
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{{ $t('auth.fullName') }}</label>
@@ -55,7 +55,7 @@
       </form>
 
       <!-- Step 2: OTP Input -->
-      <form v-else class="mt-8 space-y-6" @submit.prevent="handleVerifyOtp" data-aos="fade-up">
+      <form v-else class="mt-4 space-y-4" @submit.prevent="handleVerifyOtp" data-aos="fade-up">
         <div class="space-y-4">
           <div class="flex justify-between items-center mb-1">
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">{{ $t('auth.enterOtp') }}</label>
@@ -95,7 +95,7 @@
         </div>
       </form>
 
-      <p class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400" data-aos="fade-up" data-aos-delay="200">
+      <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400" data-aos="fade-up" data-aos-delay="200">
         {{ $t('auth.hasAccount') }}
         <router-link to="/login" class="font-bold text-primary-600 hover:text-primary-500 transition-colors">{{ $t('auth.signIn2') }}</router-link>
       </p>

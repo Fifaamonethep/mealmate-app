@@ -1,13 +1,13 @@
 <template>
-  <div class="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8 card p-8 animate-scale-in">
+  <div class="h-[100dvh] flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden fixed inset-0">
+    <div class="max-w-md w-full space-y-4 card p-6 sm:p-8 animate-scale-in max-h-screen">
       
       <div class="text-center" data-aos="fade-down">
-        <div class="w-28 h-28 mx-auto mb-2 flex items-center justify-center">
+        <div class="w-24 h-24 mx-auto mb-2 flex items-center justify-center">
           <AppLogo customClass="w-full h-full object-contain drop-shadow-md" />
         </div>
-        <h2 class="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">{{ $t('auth.welcome') }}</h2>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+        <h2 class="mt-2 text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">{{ $t('auth.welcome') }}</h2>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
           {{ loginMethod === 'forgot_password' && step === 3 ? 'Enter your new password' : (loginMethod === 'password' ? $t('auth.signInSubtitle') : (step === 1 ? $t('auth.signInSubtitle') : $t('auth.enterOtpSubtitle'))) }}
         </p>
       </div>
@@ -35,7 +35,7 @@
       </div>
 
       <!-- Step 1: Email Input (OTP) -->
-      <form v-if="loginMethod === 'otp' && step === 1" class="mt-8 space-y-6" @submit.prevent="handleSendOtp" data-aos="fade-up" data-aos-delay="100">
+      <form v-if="loginMethod === 'otp' && step === 1" class="mt-4 space-y-4" @submit.prevent="handleSendOtp" data-aos="fade-up" data-aos-delay="100">
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{{ $t('auth.email') }}</label>
@@ -56,7 +56,7 @@
       </form>
 
       <!-- Step 2: OTP Input (For Magic Link and Forgot Password) -->
-      <form v-else-if="(loginMethod === 'otp' || loginMethod === 'forgot_password') && step === 2" class="mt-8 space-y-6" @submit.prevent="handleVerifyOtp" data-aos="fade-up">
+      <form v-else-if="(loginMethod === 'otp' || loginMethod === 'forgot_password') && step === 2" class="mt-4 space-y-4" @submit.prevent="handleVerifyOtp" data-aos="fade-up">
         <div class="space-y-4">
           <div class="flex justify-between items-center mb-1">
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">{{ $t('auth.enterOtp') }}</label>
@@ -97,7 +97,7 @@
       </form>
 
       <!-- Step 3: Set New Password -->
-      <form v-else-if="loginMethod === 'forgot_password' && step === 3" class="mt-8 space-y-6" @submit.prevent="handleUpdatePassword" data-aos="fade-up">
+      <form v-else-if="loginMethod === 'forgot_password' && step === 3" class="mt-4 space-y-4" @submit.prevent="handleUpdatePassword" data-aos="fade-up">
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">New Password</label>
@@ -121,7 +121,7 @@
       </form>
 
       <!-- Password Login Form -->
-      <form v-else-if="loginMethod === 'password'" class="mt-8 space-y-6" @submit.prevent="handlePasswordLogin" data-aos="fade-up" data-aos-delay="100">
+      <form v-else-if="loginMethod === 'password'" class="mt-4 space-y-4" @submit.prevent="handlePasswordLogin" data-aos="fade-up" data-aos-delay="100">
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">{{ $t('auth.email') }}</label>
@@ -169,7 +169,7 @@
         </div>
       </div>
 
-      <p v-if="(loginMethod === 'otp' && step === 1) || loginMethod === 'password'" class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400" data-aos="fade-up" data-aos-delay="300">
+      <p v-if="(loginMethod === 'otp' && step === 1) || loginMethod === 'password'" class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400" data-aos="fade-up" data-aos-delay="300">
         {{ $t('auth.noAccount') }}
         <router-link to="/signup" class="font-bold text-primary-600 hover:text-primary-500 transition-colors">{{ $t('auth.signUp') }}</router-link>
       </p>
