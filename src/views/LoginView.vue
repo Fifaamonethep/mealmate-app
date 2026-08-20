@@ -3,7 +3,7 @@
     <div class="max-w-md w-full space-y-8 card p-8 animate-scale-in">
       
       <div class="text-center" data-aos="fade-down">
-        <div class="w-20 h-20 mx-auto mb-2 flex items-center justify-center">
+        <div class="w-28 h-28 mx-auto mb-2 flex items-center justify-center">
           <AppLogo customClass="w-full h-full object-contain drop-shadow-md" />
         </div>
         <h2 class="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">{{ $t('auth.welcome') }}</h2>
