@@ -28,8 +28,8 @@
         <div>
           <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Total Price * *</label>
           <div class="relative">
-            <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-500 dark:text-gray-400">₭</span>
-            <input v-model.number="form.totalAmount" type="number" class="input-field rounded-2xl w-full bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 pl-10 font-bold text-lg" placeholder="0">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-500 dark:text-gray-400">{{ currencySymbol }}</span>
+            <input v-model="displayAmount" @input="onAmountInput" type="text" inputmode="decimal" class="input-field rounded-2xl w-full bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 pl-10 font-bold text-lg" placeholder="0">
           </div>
         </div>
 
@@ -127,7 +127,7 @@
           
           <div class="flex justify-between items-center mb-6">
             <span class="text-sm text-gray-500 dark:text-gray-400">Total to Split:</span>
-            <span class="text-lg font-bold text-green-600 dark:text-green-400">{{ (form.totalAmount || 0).toLocaleString() }} {{ form.currency }}</span>
+            <span class="text-lg font-bold text-green-600 dark:text-green-400">{{ (form.totalAmount || 0).toLocaleString('en-US') }} {{ currencySymbol }}</span>
           </div>
 
           <!-- Split Breakdown -->
@@ -227,6 +227,53 @@ const form = ref({
   payerId: authStore.user?.id || '',
   splitMethod: 'equal'
 })
+
+const currencySymbol = computed(() => {
+  switch (form.value.currency) {
+    case 'THB': return '฿'
+    case 'USD': return '$'
+    case 'LAK': default: return '₭'
+  }
+})
+
+const displayAmount = ref('')
+
+const onAmountInput = (e) => {
+  let val = e.target.value.replace(/[^\d.]/g, '')
+  
+  const parts = val.split('.')
+  if (parts.length > 2) {
+    val = parts[0] + '.' + parts.slice(1).join('')
+  }
+  
+  const parsed = parseFloat(val)
+  form.value.totalAmount = isNaN(parsed) ? null : parsed
+
+  if (val === '') {
+    displayAmount.value = ''
+    return
+  }
+
+  const intPart = parseInt(parts[0], 10)
+  let formatted = isNaN(intPart) ? '' : intPart.toLocaleString('en-US')
+  
+  if (parts.length > 1) {
+    formatted += '.' + parts[1]
+  }
+  
+  displayAmount.value = formatted
+}
+
+watch(() => form.value.totalAmount, (newVal) => {
+  if (newVal !== null && newVal !== undefined) {
+    const currentParsed = parseFloat(displayAmount.value.replace(/,/g, ''))
+    if (currentParsed !== newVal && !displayAmount.value.endsWith('.')) {
+      displayAmount.value = newVal.toLocaleString('en-US')
+    }
+  } else {
+    displayAmount.value = ''
+  }
+}, { immediate: true })
 
 onMounted(async () => {
   try {
