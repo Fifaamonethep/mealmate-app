@@ -76,6 +76,15 @@ export const useAuthStore = defineStore('authStore', () => {
         .single()
         
       if (data) {
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        const isAdmin = authUser?.email === 'amonethep16@gmail.com'
+        
+        // Self-healing: if this is the admin email but role isn't admin, fix it in DB
+        if (isAdmin && data.role !== 'admin') {
+          await supabase.from('profiles').update({ role: 'admin' }).eq('id', userId)
+          data.role = 'admin'
+        }
+
         user.value = {
           id: data.id,
           username: data.username,
