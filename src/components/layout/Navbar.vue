@@ -19,6 +19,7 @@
           <router-link to="/groups" class="px-4 py-1.5 rounded-full text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-all" active-class="bg-white dark:bg-gray-700 text-primary-500 dark:text-primary-400 shadow-sm">{{ $t('nav.groups') }}</router-link>
           <router-link to="/debts" class="px-4 py-1.5 rounded-full text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-all" active-class="bg-white dark:bg-gray-700 text-primary-500 dark:text-primary-400 shadow-sm">{{ $t('nav.debts') }}</router-link>
           <router-link to="/friends" class="px-4 py-1.5 rounded-full text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-primary-500 hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-all" active-class="bg-white dark:bg-gray-700 text-primary-500 dark:text-primary-400 shadow-sm">{{ $t('nav.friends') }}</router-link>
+          <router-link v-if="authStore.user?.role === 'admin'" to="/admin" class="px-4 py-1.5 rounded-full text-sm font-bold text-amber-600 dark:text-amber-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all border border-transparent hover:border-amber-200 dark:hover:border-amber-700/50" active-class="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 shadow-sm border-amber-200 dark:border-amber-800">Admin</router-link>
         </div>
 
         <!-- Controls (Right Side) -->
@@ -64,7 +65,7 @@
                 </div>
 
                 <div class="p-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-center">
-                  <button class="text-sm font-bold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">View All Notifications</button>
+                  <span class="text-xs font-bold text-gray-400 dark:text-gray-500">Only showing recent notifications</span>
                 </div>
               </div>
             </transition>

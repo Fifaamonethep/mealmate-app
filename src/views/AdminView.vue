@@ -143,8 +143,29 @@ const fetchSlips = async () => {
   }
 }
 
+let subscription = null
+
 onMounted(() => {
   fetchSlips()
+
+  // Listen for realtime slip uploads/updates
+  subscription = supabase
+    .channel('public:slips')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'slips' },
+      () => {
+        fetchSlips() // Refresh the queue when any slip is added or updated
+      }
+    )
+    .subscribe()
+})
+
+import { onUnmounted } from 'vue'
+onUnmounted(() => {
+  if (subscription) {
+    supabase.removeChannel(subscription)
+  }
 })
 
 const handleAction = async (slip, newStatus) => {

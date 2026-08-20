@@ -164,7 +164,14 @@
       </div>
 
       <!-- Logout Section -->
-      <div class="animate-slide-up stagger-3 pt-4">
+      <div class="animate-slide-up stagger-3 pt-4 space-y-4">
+        
+        <!-- Admin Dashboard Link (For Admins Only) -->
+        <router-link v-if="authStore.user?.role === 'admin'" to="/admin" class="w-full flex items-center justify-center py-4 rounded-3xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 font-bold hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors shadow-sm">
+          <ShieldAlert class="w-5 h-5 mr-2" />
+          Admin Dashboard
+        </router-link>
+
         <button @click="handleLogout" class="w-full flex items-center justify-center py-4 rounded-3xl border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors">
           <LogOut class="w-5 h-5 mr-2" />
           Logout
@@ -180,7 +187,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import { supabase } from '../lib/supabase'
-import { User, QrCode, Save, Camera, Lock, X, Loader2, Copy, Key, LogOut, CheckCircle2 } from 'lucide-vue-next'
+import { User, QrCode, Save, Camera, Lock, X, Loader2, Copy, Key, LogOut, CheckCircle2, ShieldAlert } from 'lucide-vue-next'
 import { Cropper } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
 import jsQR from 'jsqr'
