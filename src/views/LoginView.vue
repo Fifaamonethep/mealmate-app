@@ -266,6 +266,8 @@ const handleVerifyOtp = async () => {
       await authStore.verifyOtp(email.value, token, 'email')
       if (authStore.needsOnboarding) {
         router.push('/onboarding')
+      } else if (authStore.user?.role === 'admin') {
+        router.push('/admin')
       } else {
         try { sessionStorage.setItem('show_summary_poster', 'true') } catch(e) {}
         router.push('/')
@@ -285,6 +287,8 @@ const handlePasswordLogin = async () => {
     await authStore.loginWithPassword(email.value, password.value)
     if (authStore.needsOnboarding) {
       router.push('/onboarding')
+    } else if (authStore.user?.role === 'admin') {
+      router.push('/admin')
     } else {
       try { sessionStorage.setItem('show_summary_poster', 'true') } catch(e) {}
       router.push('/')

@@ -199,7 +199,11 @@ const handleVerifyOtp = async () => {
   try {
     // For signup with password, the OTP type is 'signup'
     await authStore.verifyOtp(email.value, token, 'signup')
-    router.push('/')
+    if (authStore.user?.role === 'admin') {
+      router.push('/admin')
+    } else {
+      router.push('/')
+    }
   } catch (error) {
     errorMsg.value = error.message
   } finally {
