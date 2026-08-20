@@ -5,8 +5,8 @@
         
         <!-- Logo -->
         <button @click="toggleThemeFromLogo" class="flex-shrink-0 flex items-center gap-3 hover:opacity-80 transition-transform active:scale-95 focus:outline-none">
-          <div class="w-10 h-10 rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-gray-800">
-             <AppLogo />
+          <div class="w-10 h-10 flex items-center justify-center">
+             <AppLogo customClass="w-full h-full object-contain" />
           </div>
           <span class="font-extrabold text-xl tracking-tight text-gray-900 dark:text-white">MealMate</span>
         </button>
