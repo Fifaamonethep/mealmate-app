@@ -35,6 +35,9 @@ export default {
           950: '#431407',
         },
       },
+      backgroundImage: {
+        'app-logo': "url('/logo-mealmate.png')",
+      },
       fontFamily: {
         sans: ['"Noto Sans Lao"', 'Prompt', 'system-ui', 'sans-serif'],
       },

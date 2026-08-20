@@ -4,7 +4,7 @@
       
       <div class="text-center" data-aos="fade-down">
         <div class="w-16 h-16 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mx-auto mb-4 p-2 relative overflow-hidden">
-          <img src="@/assets/logo-mealmate.png" alt="MealMate Logo" class="w-full h-full object-contain rounded-xl" />
+          <AppLogo customClass="w-full h-full object-contain rounded-xl" />
         </div>
         <h2 class="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">{{ $t('auth.welcome') }}</h2>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -184,6 +184,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import { useI18n } from 'vue-i18n'
 import { LogIn, Loader2, Mail, Key, Eye, EyeOff } from 'lucide-vue-next'
+import AppLogo from '@/components/common/AppLogo.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()

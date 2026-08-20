@@ -5,9 +5,8 @@
         
         <!-- Logo -->
         <button @click="toggleThemeFromLogo" class="flex-shrink-0 flex items-center gap-3 hover:opacity-80 transition-transform active:scale-95 focus:outline-none">
-          <!-- Custom AI Generated Logo -->
           <div class="w-10 h-10 rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-gray-800">
-             <img src="@/assets/logo-mealmate.png" class="w-full h-full object-contain" alt="MealMate Logo">
+             <AppLogo />
           </div>
           <span class="font-extrabold text-xl tracking-tight text-gray-900 dark:text-white">MealMate</span>
         </button>
@@ -123,6 +122,7 @@ import { useAppStore } from '@/stores/appStore'
 import { useNotificationsStore } from '@/stores/notificationsStore'
 import { useRouter } from 'vue-router'
 import { Sun, Moon, Bell, ChevronDown, Check, Receipt, CheckCircle, AlertCircle, HandCoins } from 'lucide-vue-next'
+import AppLogo from '@/components/common/AppLogo.vue'
 
 const { t } = useI18n()
 const appStore = useAppStore()
