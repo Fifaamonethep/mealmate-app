@@ -9,9 +9,14 @@
         </button>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Group Details</h1>
       </div>
-      <router-link v-if="group" :to="'/add-meal?groupId=' + group.id" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-sm transition-transform active:scale-95 flex items-center">
-        <Plus class="w-4 h-4 mr-1" /> Add Meal
-      </router-link>
+      <div class="flex space-x-2">
+        <button v-if="group" @click="openEditGroup" class="p-2 bg-gray-100 dark:bg-gray-800 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700 shadow-sm text-gray-600 dark:text-gray-300">
+          <Settings class="w-5 h-5" />
+        </button>
+        <router-link v-if="group" :to="'/add-meal?groupId=' + group.id" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-sm transition-transform active:scale-95 flex items-center">
+          <Plus class="w-4 h-4 mr-1" /> Add Meal
+        </router-link>
+      </div>
     </div>
 
     <div v-if="isLoading" class="flex justify-center py-12">
@@ -183,6 +188,52 @@
       </div>
     </transition>
 
+    <!-- Edit Group Modal -->
+    <transition name="fade">
+      <div v-if="isEditingGroup" class="fixed inset-0 z-[150] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" @click="isEditingGroup = false"></div>
+        <div class="relative bg-white dark:bg-gray-800 w-full max-w-md rounded-[2rem] shadow-2xl flex flex-col">
+          <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center">
+              <Settings class="w-5 h-5 mr-2 text-primary-500" /> Group Settings
+            </h3>
+            <button @click="isEditingGroup = false" class="p-2 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+              <X class="w-4 h-4 text-gray-600 dark:text-gray-300" />
+            </button>
+          </div>
+          
+          <div class="p-6 space-y-4">
+            <div>
+              <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Group Name</label>
+              <input v-model="editForm.name" type="text" class="input-field rounded-xl w-full">
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Description</label>
+              <textarea v-model="editForm.description" rows="2" class="input-field rounded-xl w-full resize-none"></textarea>
+            </div>
+            
+            <div class="pt-4 border-t border-gray-100 dark:border-gray-700 mt-4">
+              <button v-if="group.created_by !== authStore.user?.id" @click="leaveGroup" class="w-full py-3 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 font-bold rounded-xl transition-colors flex items-center justify-center">
+                <LogOut class="w-4 h-4 mr-2" /> Leave Group
+              </button>
+              
+              <button v-if="group.created_by === authStore.user?.id" @click="deleteGroup" class="w-full py-3 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 font-bold rounded-xl transition-colors flex items-center justify-center">
+                <Trash2 class="w-4 h-4 mr-2" /> Delete Group
+              </button>
+            </div>
+          </div>
+          
+          <div class="p-4 border-t border-gray-100 dark:border-gray-700 flex justify-end space-x-3 bg-white dark:bg-gray-800">
+            <button @click="isEditingGroup = false" class="px-6 py-2 text-gray-500 font-bold hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors">Cancel</button>
+            <button @click="saveGroupSettings" :disabled="isSavingSettings" class="btn-primary px-6 py-2 rounded-xl flex items-center">
+              <Loader2 v-if="isSavingSettings" class="w-4 h-4 mr-2 animate-spin" />
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
   </div>
 </template>
 
@@ -190,7 +241,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { supabase } from '../lib/supabase'
-import { ArrowLeft, Users, Loader2, User, Plus, Utensils, Scale, Calendar, Pencil, Trash2 } from 'lucide-vue-next'
+import { ArrowLeft, Users, Loader2, User, Plus, Utensils, Scale, Calendar, Pencil, Trash2, Settings, X, LogOut } from 'lucide-vue-next'
 import { useAuthStore } from '../stores/authStore'
 
 const route = useRoute()
@@ -205,6 +256,10 @@ const groupBalances = ref([])
 const currentTab = ref('meals') // 'meals', 'balances', 'members'
 const mealToDelete = ref(null)
 const isDeleting = ref(false)
+
+const isEditingGroup = ref(false)
+const isSavingSettings = ref(false)
+const editForm = ref({ name: '', description: '' })
 
 const loadGroupData = async () => {
   const groupId = route.params.id
@@ -327,6 +382,77 @@ const executeDelete = async () => {
     alert("Failed to delete meal: " + err.message)
   } finally {
     isDeleting.value = false
+  }
+}
+
+const openEditGroup = () => {
+  editForm.value = {
+    name: group.value.name,
+    description: group.value.description
+  }
+  isEditingGroup.value = true
+}
+
+const saveGroupSettings = async () => {
+  isSavingSettings.value = true
+  try {
+    const { error } = await supabase
+      .from('groups')
+      .update({ name: editForm.value.name, description: editForm.value.description })
+      .eq('id', group.value.id)
+    if (error) throw error
+    
+    group.value.name = editForm.value.name
+    group.value.description = editForm.value.description
+    isEditingGroup.value = false
+  } catch (err) {
+    alert("Error saving group: " + err.message)
+  } finally {
+    isSavingSettings.value = false
+  }
+}
+
+const leaveGroup = async () => {
+  // Check if user has outstanding balances
+  const myBalance = groupBalances.value.find(b => b.id === authStore.user.id)?.balance || 0
+  if (Math.abs(myBalance) > 0.01) {
+    alert(`You cannot leave this group because you have an outstanding balance (${myBalance > 0 ? 'Gets back' : 'Owes'} ${Math.abs(myBalance)} LAK). Please settle up first.`)
+    return
+  }
+
+  if(!confirm("Are you sure you want to leave this group?")) return
+  
+  isSavingSettings.value = true
+  try {
+    const { error } = await supabase.from('group_members').delete().eq('group_id', group.value.id).eq('user_id', authStore.user.id)
+    if (error) throw error
+    isEditingGroup.value = false
+    router.push('/groups')
+  } catch (err) {
+    alert("Error leaving group: " + err.message)
+  } finally {
+    isSavingSettings.value = false
+  }
+}
+
+const deleteGroup = async () => {
+  if(!confirm("WARNING: This will permanently delete the group and ALL its meals and debts. Are you absolutely sure?")) return
+  
+  isSavingSettings.value = true
+  try {
+    // Manually delete meals first to prevent foreign key constraint issues
+    await supabase.from('meals').delete().eq('group_id', group.value.id)
+    // Then delete the group itself (group_members will be cascade deleted if set up, or we might need to delete them manually if not)
+    await supabase.from('group_members').delete().eq('group_id', group.value.id)
+    const { error } = await supabase.from('groups').delete().eq('id', group.value.id)
+    if (error) throw error
+    
+    isEditingGroup.value = false
+    router.push('/groups')
+  } catch (err) {
+    alert("Error deleting group: " + err.message)
+  } finally {
+    isSavingSettings.value = false
   }
 }
 </script>
