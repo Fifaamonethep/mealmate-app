@@ -117,6 +117,10 @@ export const useAuthStore = defineStore('authStore', () => {
     const { data, error } = await supabase.auth.signUp({ email, password })
     if (error) throw error
     
+    if (data?.user?.identities?.length === 0) {
+      throw new Error('User already registered')
+    }
+    
     if (data.user) {
       await supabase.from('profiles').insert({
         id: data.user.id,

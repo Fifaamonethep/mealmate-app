@@ -139,7 +139,11 @@ const handleSignup = async () => {
       if (otpRefs.value[0]) otpRefs.value[0].focus()
     })
   } catch (error) {
-    errorMsg.value = error.message
+    if (error.message?.includes('already registered')) {
+      errorMsg.value = "This email already signed"
+    } else {
+      errorMsg.value = error.message
+    }
   } finally {
     isLoading.value = false
   }
