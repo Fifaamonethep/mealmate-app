@@ -44,11 +44,17 @@ export const useDebtsStore = defineStore('debtsStore', () => {
     isLoading.value = true
     error.value = null
     try {
-      // 1. Fetch Meals (Who paid)
+      // 1a. Fetch Meals (Old single-payer format)
       const { data: meals, error: mealErr } = await supabase
         .from('meals')
         .select('payer_id, total_cost, profiles:payer_id(full_name)')
       if (mealErr && mealErr.code !== '42P01') throw mealErr
+
+      // 1b. Fetch Meal Payers (New multi-payer format)
+      const { data: mealPayers, error: payerErr } = await supabase
+        .from('meal_payers')
+        .select('user_id, amount_paid, profiles:user_id(full_name)')
+      if (payerErr && payerErr.code !== '42P01') throw payerErr
 
       // 2. Fetch Meal Participants (Who consumed)
       const { data: participants, error: partErr } = await supabase
@@ -59,7 +65,7 @@ export const useDebtsStore = defineStore('debtsStore', () => {
       // 3. Fetch Payments (Who settled)
       const { data: payments, error: payErr } = await supabase
         .from('payments')
-        .select('id, from_user_id, to_user_id, guest_name, amount, status, from_profiles:from_user_id(full_name), to_profiles:to_user_id(full_name)')
+        .select('id, from_user_id, to_user_id, guest_name, amount, status, receipt_url, note, from_profiles:from_user_id(full_name), to_profiles:to_user_id(full_name)')
       if (payErr && payErr.code !== '42P01') throw payErr
       
       allPayments.value = payments || []
@@ -73,8 +79,17 @@ export const useDebtsStore = defineStore('debtsStore', () => {
       // Calculate Net Balances
       if (meals) {
         meals.forEach(m => {
-          if (!balances[m.payer_id]) balances[m.payer_id] = { name: m.profiles?.full_name || 'Unknown', balance: 0, isGuest: false }
-          balances[m.payer_id].balance += parseFloat(m.total_cost)
+          if (m.payer_id) { // Only process if payer_id exists (hasn't been migrated/removed)
+             if (!balances[m.payer_id]) balances[m.payer_id] = { name: m.profiles?.full_name || 'Unknown', balance: 0, isGuest: false }
+             balances[m.payer_id].balance += parseFloat(m.total_cost)
+          }
+        })
+      }
+
+      if (mealPayers) {
+        mealPayers.forEach(p => {
+          if (!balances[p.user_id]) balances[p.user_id] = { name: p.profiles?.full_name || 'Unknown', balance: 0, isGuest: false }
+          balances[p.user_id].balance += parseFloat(p.amount_paid)
         })
       }
 
@@ -144,7 +159,9 @@ export const useDebtsStore = defineStore('debtsStore', () => {
             to: creditor.name,
             amount: roundedAmount,
             status: pendingPayment ? 'SLIP_SENT' : 'UNPAID',
-            paymentId: pendingPayment ? pendingPayment.id : null
+            paymentId: pendingPayment ? pendingPayment.id : null,
+            receiptUrl: pendingPayment ? pendingPayment.receipt_url : null,
+            note: pendingPayment ? pendingPayment.note : null
           })
         }
 
@@ -202,6 +219,29 @@ export const useDebtsStore = defineStore('debtsStore', () => {
     }
   }
 
+  const rejectPayment = async (paymentId) => {
+    try {
+      const { data: payment } = await supabase.from('payments').select('*').eq('id', paymentId).single()
+      const { error } = await supabase.from('payments').update({ status: 'REJECTED' }).eq('id', paymentId)
+      if (error) throw error
+      
+      if (payment && payment.from_user_id) {
+         const { useNotificationsStore } = await import('./notificationsStore')
+         const notifStore = useNotificationsStore()
+         await notifStore.sendNotification(
+            payment.from_user_id,
+            'PAYMENT_REJECTED',
+            `<b>${authStore.user?.user_metadata?.full_name || authStore.user?.email || 'Someone'}</b> rejected your payment. Please try again.`,
+            paymentId
+         )
+      }
+      
+      await fetchSettlements() // Refresh
+    } catch (err) {
+      alert("Error rejecting payment: " + err.message)
+    }
+  }
+
   const settleGuestDebt = async (guestName, amount) => {
     if (!authStore.user) return
     try {
@@ -229,6 +269,7 @@ export const useDebtsStore = defineStore('debtsStore', () => {
     owedToMeTotal,
     fetchSettlements,
     verifyPayment,
+    rejectPayment,
     settleGuestDebt
   }
 })

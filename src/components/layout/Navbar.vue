@@ -74,7 +74,7 @@
           <div class="relative group" v-click-outside="() => langMenuOpen = false">
             <button @click.stop="langMenuOpen = !langMenuOpen" class="flex items-center space-x-2 bg-gray-100 dark:bg-[#1e293b] border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-1.5 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
               <img :src="getCurrentFlag()" class="w-5 h-5 object-cover rounded-sm shadow-sm" alt="Flag">
-              <span class="text-sm font-bold text-gray-700 dark:text-gray-200 uppercase">{{ currentLang }}</span>
+              <span class="text-sm font-bold text-gray-700 dark:text-gray-200">{{ getCurrentLangLabel() }}</span>
               <ChevronDown class="w-3 h-3 text-gray-400" />
             </button>
 
@@ -137,13 +137,18 @@ const notifMenuOpen = ref(false)
 
 const languages = [
   { code: 'en', label: 'English', flag: 'https://flagcdn.com/w40/gb.png' },
-  { code: 'th', label: 'ภาษาไทย', flag: 'https://flagcdn.com/w40/th.png' },
-  { code: 'la', label: 'ພາສາລາວ', flag: 'https://flagcdn.com/w40/la.png' }
+  { code: 'th', label: 'Thailand', flag: 'https://flagcdn.com/w40/th.png' },
+  { code: 'la', label: 'Lao', flag: 'https://flagcdn.com/w40/la.png' }
 ]
 
 const getCurrentFlag = () => {
   const lang = languages.find(l => l.code === currentLang.value)
   return lang ? lang.flag : languages[0].flag
+}
+
+const getCurrentLangLabel = () => {
+  const lang = languages.find(l => l.code === currentLang.value)
+  return lang ? lang.label : 'English'
 }
 
 const changeLang = (langCode) => {

@@ -18,29 +18,46 @@
       <!-- Modal Body (Scrollable) -->
       <div class="p-6 flex-1 overflow-y-auto space-y-6 custom-scrollbar">
         
-        <!-- Meal Title -->
-        <div>
-          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Meal Title *</label>
-          <input v-model="form.title" type="text" class="input-field rounded-2xl w-full bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800" placeholder="E.g. Dinner, Pizza...">
-        </div>
-
-        <!-- Total Price -->
-        <div>
-          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Total Price * *</label>
-          <div class="relative">
-            <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-500 dark:text-gray-400">{{ currencySymbol }}</span>
-            <input v-model="displayAmount" @input="onAmountInput" type="text" inputmode="decimal" class="input-field rounded-2xl w-full bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 pl-10 font-bold text-lg" placeholder="0">
+        <!-- Meal Title & Location & Date -->
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Meal Title / Name *</label>
+            <input v-model="form.title" type="text" class="input-field rounded-2xl w-full bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800" placeholder="E.g. Dinner, Pizza, Grab...">
+          </div>
+          
+          <div class="flex space-x-4">
+            <div class="flex-1">
+              <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                <MapPin class="w-3 h-3 mr-1 text-primary-500" /> Location
+              </label>
+              <input v-model="form.location" type="text" class="input-field rounded-xl w-full bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 text-sm" placeholder="Restaurant name...">
+            </div>
+            <div class="flex-1">
+              <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                <Calendar class="w-3 h-3 mr-1 text-primary-500" /> Date
+              </label>
+              <input v-model="form.date" type="date" class="input-field rounded-xl w-full bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 text-sm">
+            </div>
           </div>
         </div>
 
-        <!-- Currency -->
-        <div>
-          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Currency</label>
-          <select v-model="form.currency" class="input-field rounded-2xl w-full bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800">
-            <option value="LAK">LAK (Lao Kip)</option>
-            <option value="THB">THB (Thai Baht)</option>
-            <option value="USD">USD (US Dollar)</option>
-          </select>
+        <!-- Total Price & Currency -->
+        <div class="flex space-x-4">
+          <div class="flex-[2]">
+            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Total Price *</label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-500 dark:text-gray-400">{{ currencySymbol }}</span>
+              <input v-model="displayAmount" @input="onAmountInput" type="text" inputmode="decimal" class="input-field rounded-2xl w-full bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 pl-10 font-bold text-lg" placeholder="0">
+            </div>
+          </div>
+          <div class="flex-1">
+            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Currency</label>
+            <select v-model="form.currency" class="input-field rounded-2xl w-full bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 font-bold">
+              <option value="LAK">LAK</option>
+              <option value="THB">THB</option>
+              <option value="USD">USD</option>
+            </select>
+          </div>
         </div>
 
         <!-- Select Group -->
@@ -48,11 +65,11 @@
           <div class="flex justify-between items-center mb-2">
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">Select Group (Optional)</label>
             <router-link to="/groups" class="text-xs font-bold text-primary-600 dark:text-primary-400 flex items-center">
-              <Plus class="w-3 h-3 mr-0.5" /> + Create Group
+              <Plus class="w-3 h-3 mr-0.5" /> Create Group
             </router-link>
           </div>
           <select v-model="form.groupId" class="input-field rounded-2xl w-full bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 text-sm">
-            <option value="">-- All Groups --</option>
+            <option value="">-- No Group (Individual) --</option>
             <option v-for="group in groups" :key="group.id" :value="group.id">{{ group.name }}</option>
           </select>
         </div>
@@ -62,33 +79,30 @@
           <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Who paid upfront for the bill?</label>
           <div class="flex bg-gray-100 dark:bg-[#0f172a] rounded-2xl p-1 border border-gray-200 dark:border-gray-800">
             <button @click="form.payerType = 'single'" :class="['flex-1 py-3 text-sm font-bold rounded-xl transition-all', form.payerType === 'single' ? 'bg-primary-500 text-white shadow-md' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400']">1 Person paid all</button>
-            <button @click="form.payerType = 'multi'" :class="['flex-1 py-3 text-sm font-bold rounded-xl transition-all', form.payerType === 'multi' ? 'bg-primary-500 text-white shadow-md' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400']">Multiple people paid</button>
+            <button @click="form.payerType = 'multi'" :class="['flex-1 py-3 text-sm font-bold rounded-xl transition-all', form.payerType === 'multi' ? 'bg-primary-500 text-white shadow-md' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400']">Multiple people</button>
           </div>
+          
+          <!-- Single Payer -->
           <select v-if="form.payerType === 'single'" v-model="form.payerId" class="input-field rounded-2xl w-full bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 mt-3 text-sm">
             <option :value="authStore.user?.id">{{ authStore.user?.fullName }} (You)</option>
             <option v-for="member in groupMembers" :key="member.id" :value="member.id" v-show="member.id !== authStore.user?.id">
               {{ member.name }}
             </option>
           </select>
-        </div>
 
-        <!-- Meal Receipt / Bill Photo -->
-        <div>
-          <label class="flex items-center text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-            <Camera class="w-4 h-4 mr-2 text-primary-500" /> Meal Receipt / Bill Photo
-          </label>
-          <div class="bg-gray-50 dark:bg-gray-900/50 rounded-3xl p-4 border border-gray-200 dark:border-gray-800 flex items-center space-x-4">
-            <div class="w-20 h-20 bg-gray-200 dark:bg-gray-800 rounded-2xl overflow-hidden flex-shrink-0 relative group">
-              <img v-if="receiptImage" :src="receiptImage" class="w-full h-full object-cover">
-              <Image v-else class="w-8 h-8 text-gray-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
-            </div>
-            <div>
-              <label class="inline-flex items-center px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-xl text-sm font-bold cursor-pointer transition-colors mb-1">
-                <Camera class="w-4 h-4 mr-2" /> Take / Upload Receipt
-                <input type="file" class="hidden" accept="image/*" @change="onReceiptSelect">
-              </label>
-              <p class="text-xs text-gray-500 dark:text-gray-400">Snap or upload receipt/bill photo to attach to meal</p>
-            </div>
+          <!-- Multi Payer -->
+          <div v-else class="mt-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-2xl p-4">
+             <div class="flex justify-between items-center mb-3">
+               <span class="text-xs font-bold text-gray-500">Enter amounts paid:</span>
+               <span :class="['text-xs font-bold', remainingMultiPayerAmount === 0 ? 'text-green-500' : 'text-red-500']">
+                 Missing: {{ remainingMultiPayerAmount.toLocaleString() }}
+               </span>
+             </div>
+             
+             <div v-for="payer in potentialPayers" :key="payer.id" class="flex justify-between items-center mb-2 last:mb-0">
+               <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ payer.name }}</span>
+               <input v-model.number="payer.amount_paid" type="number" placeholder="0" class="w-24 px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-right font-bold focus:ring-2 focus:ring-primary-500 outline-none">
+             </div>
           </div>
         </div>
 
@@ -96,7 +110,7 @@
         <div>
           <div class="flex justify-between items-center mb-2">
             <label class="flex items-center text-sm font-bold text-gray-700 dark:text-gray-300">
-              <Users class="w-4 h-4 mr-2 text-primary-500" /> Participants ({{ participants.length }})
+              <Users class="w-4 h-4 mr-2 text-primary-500" /> Who's sharing the cost? ({{ participants.length }})
             </label>
           </div>
           
@@ -112,28 +126,22 @@
 
           <div class="flex space-x-2">
             <input v-model="newGuestName" @keyup.enter="addGuest" type="text" placeholder="Type a guest name (e.g. Mom, Boss)" class="input-field rounded-xl w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 text-sm">
-            <button @click="addGuest" class="px-4 py-2 bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 rounded-xl font-bold text-sm whitespace-nowrap transition-transform active:scale-95">+ Add Guest</button>
+            <button @click="addGuest" class="px-4 py-2 bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 rounded-xl font-bold text-sm whitespace-nowrap transition-transform active:scale-95">+ Add</button>
           </div>
-          <p v-if="form.groupId" class="text-xs text-gray-500 mt-2 italic">Note: Group members will also be automatically included in the split.</p>
         </div>
 
         <!-- Split Method -->
         <div>
-          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Split Method</label>
+          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">How to split the cost?</label>
           <div class="flex bg-gray-100 dark:bg-[#0f172a] rounded-2xl p-1 border border-gray-200 dark:border-gray-800 mb-4">
             <button @click="form.splitMethod = 'equal'" :class="['flex-1 py-3 text-sm font-bold rounded-xl transition-all', form.splitMethod === 'equal' ? 'bg-primary-500 text-white shadow-md' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400']">Equal Split</button>
-            <button @click="form.splitMethod = 'custom'" :class="['flex-1 py-3 text-sm font-bold rounded-xl transition-all', form.splitMethod === 'custom' ? 'bg-primary-500 text-white shadow-md' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400']">Custom Split</button>
+            <button @click="form.splitMethod = 'custom'" :class="['flex-1 py-3 text-sm font-bold rounded-xl transition-all', form.splitMethod === 'custom' ? 'bg-primary-500 text-white shadow-md' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400']">Custom Amounts</button>
           </div>
           
-          <div class="flex justify-between items-center mb-6">
-            <span class="text-sm text-gray-500 dark:text-gray-400">Total to Split:</span>
-            <span class="text-lg font-bold text-green-600 dark:text-green-400">{{ (form.totalAmount || 0).toLocaleString('en-US') }} {{ currencySymbol }}</span>
-          </div>
-
           <!-- Split Breakdown -->
           <div class="bg-gray-50 dark:bg-gray-900/50 rounded-3xl p-4 border border-gray-200 dark:border-gray-800">
             <div class="flex justify-between items-center mb-3">
-              <p class="text-xs font-bold text-gray-500 dark:text-primary-400">Split Breakdown:</p>
+              <p class="text-xs font-bold text-gray-500 dark:text-primary-400">Breakdown:</p>
               <p v-if="form.splitMethod === 'custom'" :class="['text-xs font-bold', remainingCustomAmount === 0 ? 'text-green-500' : 'text-red-500']">
                 Remaining: {{ remainingCustomAmount.toLocaleString() }}
               </p>
@@ -141,18 +149,34 @@
             
             <div v-for="(p, index) in participants" :key="index" class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800 last:border-0">
               <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 rounded-full bg-primary-200 dark:bg-primary-700 flex items-center justify-center text-primary-800 dark:text-white font-bold text-xs">
-                  {{ p.name?.charAt(0) || 'U' }}
-                </div>
-                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ p.name }} <span v-if="p.isGuest" class="text-xs text-gray-400">(Guest)</span></span>
+                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ p.name }}</span>
               </div>
               
-              <span v-if="form.splitMethod === 'equal'" class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                Owes {{ ((form.totalAmount || 0) / Math.max(1, participants.length)).toLocaleString() }}
+              <span v-if="form.splitMethod === 'equal'" class="text-sm font-bold text-gray-500 dark:text-gray-400">
+                Owes {{ ((form.totalAmount || 0) / Math.max(1, participants.length)).toLocaleString('en-US', {maximumFractionDigits:2}) }}
               </span>
               <div v-else class="flex items-center space-x-2">
-                <input v-model.number="p.amount_owed" type="number" class="w-24 px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-right font-bold focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="0">
+                <input v-model.number="p.amount_owed" type="number" class="w-24 px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-right font-bold focus:ring-2 focus:ring-primary-500 outline-none" placeholder="0">
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meal Receipt / Bill Photo -->
+        <div>
+          <label class="flex items-center text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+            <Camera class="w-4 h-4 mr-2 text-primary-500" /> Attach Receipt Photo (Optional)
+          </label>
+          <div class="bg-gray-50 dark:bg-gray-900/50 rounded-3xl p-4 border border-gray-200 dark:border-gray-800 flex items-center space-x-4">
+            <div class="w-20 h-20 bg-gray-200 dark:bg-gray-800 rounded-2xl overflow-hidden flex-shrink-0 relative group">
+              <img v-if="receiptImage" :src="receiptImage" class="w-full h-full object-cover">
+              <Image v-else class="w-8 h-8 text-gray-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+            </div>
+            <div>
+              <label class="inline-flex items-center px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-xl text-sm font-bold cursor-pointer transition-colors mb-1 shadow-sm">
+                <Camera class="w-4 h-4 mr-2" /> Upload Receipt
+                <input type="file" class="hidden" accept="image/*" @change="onReceiptSelect">
+              </label>
             </div>
           </div>
         </div>
@@ -165,24 +189,23 @@
         <button @click="saveMeal" :disabled="isSaving || !form.title || !form.totalAmount" class="bg-primary-500 hover:bg-primary-600 text-white px-8 py-3 rounded-2xl font-bold shadow-[0_8px_30px_rgba(16,185,129,0.3)] transition-transform active:scale-95 flex items-center disabled:opacity-50">
           <Loader2 v-if="isSaving" class="w-5 h-5 mr-2 animate-spin" />
           <Receipt v-else class="w-5 h-5 mr-2" />
-          {{ isEditing ? 'Update & Split Meal' : 'Create & Split Meal' }}
+          {{ isEditing ? 'Update & Split' : 'Save & Split' }}
         </button>
       </div>
 
     </div>
 
-    <!-- Success Modal Overlay -->
+    <!-- Modals -->
     <transition name="fade">
       <div v-if="showSuccessModal" class="absolute inset-0 z-[200] bg-white/90 dark:bg-gray-900/90 backdrop-blur-md flex flex-col items-center justify-center rounded-[2rem]">
         <div class="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6 animate-bounce">
-          <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+          <Check class="w-10 h-10 text-green-500" />
         </div>
         <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Success!</h2>
-        <p class="text-gray-500 dark:text-gray-400 font-medium">Meal created successfully.</p>
+        <p class="text-gray-500 font-medium">Meal saved successfully.</p>
       </div>
     </transition>
 
-    <!-- Error Modal Overlay -->
     <transition name="fade">
       <div v-if="errorMessage" class="absolute inset-0 z-[200] bg-white/90 dark:bg-gray-900/90 backdrop-blur-md flex flex-col items-center justify-center rounded-[2rem] p-6 text-center">
         <div class="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-6">
@@ -203,7 +226,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import { useNotificationsStore } from '../stores/notificationsStore'
 import { supabase } from '../lib/supabase'
-import { Plus, X, Camera, Users, Receipt, Loader2, Image } from 'lucide-vue-next'
+import { Plus, X, Camera, Users, Receipt, Loader2, Image, MapPin, Calendar, Check } from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
@@ -220,6 +243,8 @@ const editMealId = ref(null)
 
 const form = ref({
   title: '',
+  date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+  location: '',
   totalAmount: null,
   currency: 'LAK',
   groupId: '',
@@ -240,26 +265,17 @@ const displayAmount = ref('')
 
 const onAmountInput = (e) => {
   let val = e.target.value.replace(/[^\d.]/g, '')
-  
   const parts = val.split('.')
-  if (parts.length > 2) {
-    val = parts[0] + '.' + parts.slice(1).join('')
-  }
+  if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('')
   
   const parsed = parseFloat(val)
   form.value.totalAmount = isNaN(parsed) ? null : parsed
 
-  if (val === '') {
-    displayAmount.value = ''
-    return
-  }
-
+  if (val === '') { displayAmount.value = ''; return; }
+  
   const intPart = parseInt(parts[0], 10)
   let formatted = isNaN(intPart) ? '' : intPart.toLocaleString('en-US')
-  
-  if (parts.length > 1) {
-    formatted += '.' + parts[1]
-  }
+  if (parts.length > 1) formatted += '.' + parts[1]
   
   displayAmount.value = formatted
 }
@@ -275,6 +291,15 @@ watch(() => form.value.totalAmount, (newVal) => {
   }
 }, { immediate: true })
 
+const groupMembers = ref([])
+const potentialPayers = ref([
+  { id: authStore.user?.id, name: authStore.user?.fullName + ' (You)', amount_paid: 0 }
+])
+
+const participants = ref([
+  { id: authStore.user?.id, name: authStore.user?.fullName, isGuest: false, amount_owed: 0 }
+])
+
 onMounted(async () => {
   try {
     const { data } = await supabase.from('groups').select('id, name')
@@ -287,19 +312,40 @@ onMounted(async () => {
       const { data: mealData, error: mealErr } = await supabase.from('meals').select('*').eq('id', editMealId.value).single()
       if (mealErr) throw mealErr
 
+      // Privacy Check: Only participants, payers, creator, or admin can view/edit
+      const { data: partsData } = await supabase.from('meal_participants').select('*, profiles:user_id(full_name)').eq('meal_id', editMealId.value)
+      const { data: payersData } = await supabase.from('meal_payers').select('*, profiles(full_name)').eq('meal_id', editMealId.value)
+      
+      const isCreator = mealData.created_by === authStore.user?.id
+      const isAdmin = authStore.user?.role === 'admin'
+      const isParticipant = partsData && partsData.some(p => p.user_id === authStore.user?.id)
+      const isPayer = payersData && payersData.some(p => p.user_id === authStore.user?.id)
+      
+      if (!isCreator && !isAdmin && !isParticipant && !isPayer) {
+         errorMessage.value = "You don't have permission to view or edit this meal because you were not part of it."
+         setTimeout(() => router.back(), 3000)
+         return
+      }
+
       form.value.title = mealData.title
+      form.value.date = mealData.date || new Date().toISOString().split('T')[0]
+      form.value.location = mealData.location || ''
       form.value.totalAmount = parseFloat(mealData.total_cost)
       form.value.currency = mealData.currency
       form.value.groupId = mealData.group_id || ''
-      form.value.payerId = mealData.payer_id
-      form.value.payerType = mealData.payer_type
+      form.value.payerId = mealData.payer_id || authStore.user?.id
+      form.value.payerType = mealData.payer_type || 'single'
       form.value.splitMethod = mealData.split_method
-      if (mealData.receipt_url) {
-        receiptImage.value = mealData.receipt_url
+      if (mealData.receipt_url) receiptImage.value = mealData.receipt_url
+
+      // Load old meal_payers (V2)
+      if (payersData && payersData.length > 0) {
+         form.value.payerType = payersData.length > 1 ? 'multi' : 'single'
+         if (form.value.payerType === 'single') {
+            form.value.payerId = payersData[0].user_id
+         }
       }
 
-      const { data: partsData } = await supabase.from('meal_participants').select('*, profiles:user_id(full_name)').eq('meal_id', editMealId.value)
-      
       if (partsData && partsData.length > 0) {
         participants.value = partsData.map(p => ({
           id: p.user_id,
@@ -316,38 +362,15 @@ onMounted(async () => {
   }
 })
 
-const receiptFile = ref(null)
-const newGuestName = ref('')
-const participants = ref([
-  { id: authStore.user?.id, name: authStore.user?.fullName, isGuest: false, amount_owed: 0 }
-])
-
-const remainingCustomAmount = computed(() => {
-  const total = form.value.totalAmount || 0;
-  const currentSum = participants.value.reduce((sum, p) => sum + (p.amount_owed || 0), 0);
-  return total - currentSum;
-})
-
-const addGuest = () => {
-  if (newGuestName.value.trim()) {
-    participants.value.push({
-      id: null,
-      name: newGuestName.value.trim(),
-      isGuest: true,
-      amount_owed: 0
-    })
-    newGuestName.value = ''
-  }
-}
-
-const groupMembers = ref([])
-
 watch(() => form.value.groupId, async (newGroupId, oldGroupId) => {
   if (isEditing.value && oldGroupId === undefined) return // Skip wiping participants on initial load
   
-  // Reset participants to just user + manually added guests
   participants.value = participants.value.filter(p => p.isGuest || p.id === authStore.user?.id)
   groupMembers.value = []
+  
+  potentialPayers.value = [
+    { id: authStore.user?.id, name: authStore.user?.fullName + ' (You)', amount_paid: 0 }
+  ]
 
   if (newGroupId) {
     const { data: members } = await supabase
@@ -359,14 +382,36 @@ watch(() => form.value.groupId, async (newGroupId, oldGroupId) => {
       members.forEach(m => {
         const memberObj = { id: m.user_id, name: m.profiles?.full_name, isGuest: false, amount_owed: 0 }
         groupMembers.value.push(memberObj)
-        // Add to participants if not already there
-        if (!participants.value.some(p => p.id === m.user_id)) {
-          participants.value.push(memberObj)
+        if (!participants.value.some(p => p.id === m.user_id)) participants.value.push(memberObj)
+        if (!potentialPayers.value.some(p => p.id === m.user_id)) {
+           potentialPayers.value.push({ id: m.user_id, name: m.profiles?.full_name, amount_paid: 0 })
         }
       })
     }
   }
 })
+
+const remainingCustomAmount = computed(() => {
+  const total = form.value.totalAmount || 0;
+  const currentSum = participants.value.reduce((sum, p) => sum + (p.amount_owed || 0), 0);
+  return total - currentSum;
+})
+
+const remainingMultiPayerAmount = computed(() => {
+  const total = form.value.totalAmount || 0;
+  const currentSum = potentialPayers.value.reduce((sum, p) => sum + (p.amount_paid || 0), 0);
+  return total - currentSum;
+})
+
+const receiptFile = ref(null)
+const newGuestName = ref('')
+
+const addGuest = () => {
+  if (newGuestName.value.trim()) {
+    participants.value.push({ id: null, name: newGuestName.value.trim(), isGuest: true, amount_owed: 0 })
+    newGuestName.value = ''
+  }
+}
 
 const removeParticipant = (index) => {
   participants.value.splice(index, 1)
@@ -387,7 +432,7 @@ const saveMeal = async () => {
   try {
     let receiptUrl = null
 
-    // 1. Upload receipt if exists
+    // 1. Upload receipt
     if (receiptFile.value) {
       const fileExt = receiptFile.value.name.split('.').pop()
       const fileName = `${Date.now()}_${authStore.user.id}.${fileExt}`
@@ -400,10 +445,12 @@ const saveMeal = async () => {
     // 2. Insert or Update Meal
     const mealPayload = {
       title: form.value.title,
+      date: form.value.date,
+      location: form.value.location,
       total_cost: form.value.totalAmount,
       currency: form.value.currency,
       group_id: form.value.groupId || null,
-      payer_id: form.value.payerId,
+      payer_id: form.value.payerType === 'single' ? form.value.payerId : null,
       payer_type: form.value.payerType,
       split_method: form.value.splitMethod,
       created_by: authStore.user.id
@@ -416,27 +463,36 @@ const saveMeal = async () => {
       if (updateError) throw updateError
       mealId = updateData.id
       await supabase.from('meal_participants').delete().eq('meal_id', mealId)
+      await supabase.from('meal_payers').delete().eq('meal_id', mealId)
     } else {
       const { data: insertData, error: insertError } = await supabase.from('meals').insert(mealPayload).select().single()
       if (insertError) throw insertError
       mealId = insertData.id
     }
 
-    // 3. Prepare Participants
+    // 3. Handle Payers (V2 Logic)
+    let payersToInsert = []
+    if (form.value.payerType === 'single') {
+       payersToInsert.push({ meal_id: mealId, user_id: form.value.payerId, amount_paid: form.value.totalAmount })
+    } else {
+       if (remainingMultiPayerAmount.value !== 0) {
+          throw new Error(`The amounts paid upfront do not equal the total cost. Missing: ${remainingMultiPayerAmount.value}`)
+       }
+       payersToInsert = potentialPayers.value
+          .filter(p => p.amount_paid > 0)
+          .map(p => ({ meal_id: mealId, user_id: p.id, amount_paid: p.amount_paid }))
+    }
+    const { error: payerErr } = await supabase.from('meal_payers').insert(payersToInsert)
+    if (payerErr) throw payerErr
+
+    // 4. Handle Participants
     let finalParticipants = [...participants.value]
-    
-    // Validation for custom split
     if (form.value.splitMethod === 'custom') {
-      const sum = finalParticipants.reduce((acc, p) => acc + (p.amount_owed || 0), 0)
-      if (Math.abs(sum - form.value.totalAmount) > 0.01) {
-        errorMessage.value = `Custom split amounts must equal the total price (${form.value.totalAmount}). Currently missing/over by ${Math.abs(sum - form.value.totalAmount)}`
-        isSaving.value = false
-        return
+      if (Math.abs(remainingCustomAmount.value) > 0.01) {
+        throw new Error(`Custom split amounts must equal the total price. Missing: ${remainingCustomAmount.value}`)
       }
     }
-
     const equalSplitAmount = form.value.totalAmount / Math.max(1, finalParticipants.length)
-
     const pRecords = finalParticipants.map(p => ({
       meal_id: mealId,
       user_id: p.id,
@@ -447,7 +503,7 @@ const saveMeal = async () => {
     const { error: partError } = await supabase.from('meal_participants').insert(pRecords)
     if (partError) throw partError
 
-    // Send notifications to participants (who are registered users, not guests, and not the creator)
+    // Send notifications
     for (const p of pRecords) {
       if (p.user_id && p.user_id !== authStore.user.id) {
         await notifStore.sendNotification(
@@ -460,9 +516,7 @@ const saveMeal = async () => {
     }
 
     showSuccessModal.value = true
-    setTimeout(() => {
-      router.back() // Go back to wherever they came from (Meals List or Group Details)
-    }, 2000)
+    setTimeout(() => { router.back() }, 1500)
   } catch (err) {
     errorMessage.value = err.message
   } finally {
@@ -472,20 +526,9 @@ const saveMeal = async () => {
 </script>
 
 <style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(156, 163, 175, 0.3);
-  border-radius: 10px;
-}
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
-}
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(156, 163, 175, 0.3); border-radius: 10px; }
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>

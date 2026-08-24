@@ -101,16 +101,25 @@
               </div>
               </div>
               <div class="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700/50">
-                <div class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                  <div class="w-6 h-6 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 border border-white dark:border-gray-800">
-                     <img v-if="meal.profiles?.avatar_url" :src="meal.profiles.avatar_url" class="w-full h-full object-cover">
-                     <User v-else class="w-3 h-3 text-gray-400 m-1.5" />
+                <div class="flex flex-col space-y-2">
+                  <div class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                    <span class="font-medium">Paid By: </span>
+                    <span class="font-bold text-gray-900 dark:text-gray-200">{{ getMealPayersStr(meal.id) }}</span>
                   </div>
-                  <span class="font-medium">Paid By <span class="font-bold text-gray-900 dark:text-gray-200">{{ meal.profiles?.full_name || 'Admin' }}</span></span>
+                  <div class="flex items-center text-xs text-gray-500 font-medium">
+                    <Users class="w-3 h-3 mr-1" />
+                    {{ getMealParticipantsCount(meal.id) }} Participants
+                  </div>
                 </div>
-                <div class="flex items-center text-xs text-gray-500 font-medium">
-                  <Calendar class="w-3 h-3 mr-1" />
-                  {{ new Date(meal.created_at).toLocaleDateString() }}
+                <div class="flex flex-col items-end space-y-2">
+                  <div class="flex items-center text-xs text-gray-500 font-medium">
+                    <Calendar class="w-3 h-3 mr-1" />
+                    {{ meal.date || new Date(meal.created_at).toLocaleDateString() }}
+                  </div>
+                  <div v-if="meal.location" class="flex items-center text-xs text-gray-500 font-medium">
+                    <MapPin class="w-3 h-3 mr-1" />
+                    {{ meal.location }}
+                  </div>
                 </div>
               </div>
            </div>
@@ -241,7 +250,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { supabase } from '../lib/supabase'
-import { ArrowLeft, Users, Loader2, User, Plus, Utensils, Scale, Calendar, Pencil, Trash2, Settings, X, LogOut } from 'lucide-vue-next'
+import { ArrowLeft, Users, Loader2, User, Plus, Utensils, Scale, Calendar, Pencil, Trash2, Settings, X, LogOut, MapPin } from 'lucide-vue-next'
 import { useAuthStore } from '../stores/authStore'
 
 const route = useRoute()
@@ -253,6 +262,8 @@ const group = ref(null)
 const members = ref([])
 const groupMeals = ref([])
 const groupBalances = ref([])
+const mealParticipantsData = ref([])
+const mealPayersData = ref([])
 const currentTab = ref('meals') // 'meals', 'balances', 'members'
 const mealToDelete = ref(null)
 const isDeleting = ref(false)
@@ -299,13 +310,25 @@ const loadGroupData = async () => {
     }
 
     // 4. Calculate Group Balances
-    // We need meal_participants for the meals in this group
     if (groupMeals.value.length > 0) {
       const mealIds = groupMeals.value.map(m => m.id)
+      
       const { data: participantsData, error: partErr } = await supabase
         .from('meal_participants')
         .select('*, profiles:user_id(full_name)')
         .in('meal_id', mealIds)
+        
+      const { data: payersData, error: payersErr } = await supabase
+        .from('meal_payers')
+        .select('*, profiles:user_id(full_name)')
+        .in('meal_id', mealIds)
+
+      if (!partErr && participantsData) {
+        mealParticipantsData.value = participantsData
+      }
+      if (!payersErr && payersData) {
+        mealPayersData.value = payersData
+      }
 
       if (!partErr && participantsData) {
         const balancesMap = {}
@@ -316,10 +339,21 @@ const loadGroupData = async () => {
 
         // Add amounts paid by payers
         groupMeals.value.forEach(m => {
-           const id = m.payer_id // assuming payers are always users for simplicity
-           const name = m.profiles?.full_name || 'Unknown'
-           if (!balancesMap[id]) balancesMap[id] = { name, balance: 0 }
-           balancesMap[id].balance += parseFloat(m.total_cost)
+           // Fallback to single payer if meal_payers is not available (legacy)
+           const mPayers = payersData?.filter(p => p.meal_id === m.id) || []
+           if (mPayers.length > 0) {
+              mPayers.forEach(p => {
+                 const id = p.user_id
+                 const name = p.profiles?.full_name || 'Unknown'
+                 if (!balancesMap[id]) balancesMap[id] = { name, balance: 0 }
+                 balancesMap[id].balance += parseFloat(p.amount_paid)
+              })
+           } else if (m.payer_id) {
+              const id = m.payer_id
+              const name = m.profiles?.full_name || 'Unknown'
+              if (!balancesMap[id]) balancesMap[id] = { name, balance: 0 }
+              balancesMap[id].balance += parseFloat(m.total_cost)
+           }
         })
 
         // Subtract amounts consumed
@@ -360,6 +394,20 @@ const loadGroupData = async () => {
 onMounted(() => {
   loadGroupData()
 })
+
+const getMealParticipantsCount = (mealId) => {
+  return mealParticipantsData.value.filter(p => p.meal_id === mealId).length
+}
+
+const getMealPayersStr = (mealId) => {
+  const mPayers = mealPayersData.value.filter(p => p.meal_id === mealId)
+  if (mPayers.length > 0) {
+    if (mPayers.length === 1) return mPayers[0].profiles?.full_name || 'Unknown'
+    return mPayers.map(p => p.profiles?.full_name?.split(' ')[0] || 'Unknown').join(', ')
+  }
+  const meal = groupMeals.value.find(m => m.id === mealId)
+  return meal?.profiles?.full_name || 'Unknown'
+}
 
 const editMeal = (id) => {
   router.push({ path: '/add-meal', query: { editMealId: id } })
