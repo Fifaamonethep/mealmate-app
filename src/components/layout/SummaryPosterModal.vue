@@ -42,7 +42,7 @@
                     </div>
                     <div>
                       <p class="font-bold text-gray-900 dark:text-white">{{ tx.from }}</p>
-                      <p class="text-[10px] text-gray-500 uppercase font-bold">{{ tx.amount.toLocaleString() }} ฿</p>
+                      <p class="text-[10px] text-gray-500 uppercase font-bold">{{ $formatCurrency(tx.amount, "฿") }}</p>
                     </div>
                   </div>
                   <button @click="remindDebtor(tx.from)" class="px-3 py-1.5 bg-primary-100 hover:bg-primary-200 dark:bg-primary-900/30 dark:hover:bg-primary-900/50 text-primary-600 dark:text-primary-400 text-xs font-bold rounded-lg transition-colors flex items-center active:scale-95">
@@ -74,7 +74,7 @@
                     </div>
                   </div>
                   <div class="text-right">
-                    <p class="font-black text-red-500">{{ tx.amount.toLocaleString() }} ฿</p>
+                    <p class="font-black text-red-500">{{ $formatCurrency(tx.amount, "฿") }}</p>
                   </div>
                 </div>
               </div>

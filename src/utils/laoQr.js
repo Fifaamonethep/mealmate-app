@@ -1,54 +1,55 @@
 export function generateLaoQR(phoneNumber, amount) {
   if (!phoneNumber) return '';
 
-  // Clean the phone number (remove non-digits)
+  // ล้างเบอร์โทรศัพท์ (ลบตัวอักษรที่ไม่ใช่ตัวเลขออก)
   let phone = phoneNumber.replace(/[^0-9]/g, '');
-  // Standardize to 856 format
+  // ปรับรูปแบบให้เป็นมาตรฐาน 856
   if (phone.startsWith('020')) {
     phone = '856' + phone.substring(1);
   } else if (!phone.startsWith('856')) {
-    phone = '85620' + phone; // fallback assumption
+    phone = '85620' + phone; // ค่าเริ่มต้นถ้าไม่มี
   }
 
-  // EMVCo QR Code standard fields
+  // ฟิลด์มาตรฐานสำหรับ EMVCo QR Code
   let payload = '';
-  // 00 - Payload Format Indicator (01)
+  // 00 - รูปแบบของ Payload (01)
   payload += '000201';
-  // 01 - Point of Initiation Method (12 = Dynamic, since we include amount)
+  // 01 - วิธีการเริ่มต้น (12 = แบบไดนามิก เนื่องจากเราระบุจำนวนเงิน)
   payload += '010212';
   
-  // 38 - Merchant Account Information (Generic BCEL / LaoQR EMVCo AID)
-  // Sub-tag 00 = AID, Sub-tag 01 = Phone Number
-  // Note: This is a mocked BCEL One compatible structure.
+  // 38 - ข้อมูลบัญชีร้านค้า (Generic BCEL / LaoQR EMVCo AID)
+  // Sub-tag 00 = AID, Sub-tag 01 = เบอร์โทรศัพท์
+  // หมายเหตุ: โครงสร้างนี้จำลองแบบมาจาก BCEL One
   const subTag00 = '0016A000000677010112'; 
   const subTag01 = `01${String(phone.length).padStart(2, '0')}${phone}`;
   const merchantInfo = subTag00 + subTag01;
   payload += `38${String(merchantInfo.length).padStart(2, '0')}${merchantInfo}`;
 
-  // 53 - Transaction Currency Code (418 = LAK)
+  // 53 - รหัสสกุลเงินของการทำธุรกรรม (418 = LAK)
   payload += '5303418';
 
-  // 54 - Transaction Amount
+  // 54 - จำนวนเงิน
+
   if (amount > 0) {
     const amountStr = Number(amount).toFixed(2);
     payload += `54${String(amountStr.length).padStart(2, '0')}${amountStr}`;
   }
 
-  // 58 - Country Code (LA)
+  // 58 - รหัสประเทศ (LA)
   payload += '5802LA';
 
-  // 59 - Merchant Name
+  // 59 - ชื่อร้านค้า
   const merchantName = 'MealMate User';
   payload += `59${String(merchantName.length).padStart(2, '0')}${merchantName}`;
 
-  // 60 - Merchant City
+  // 60 - เมืองของร้านค้า
   const merchantCity = 'Vientiane';
   payload += `60${String(merchantCity.length).padStart(2, '0')}${merchantCity}`;
 
-  // 63 - CRC16 (To be calculated)
+  // 63 - CRC16 (รอคำนวณ)
   payload += '6304';
 
-  // Calculate CRC16 CCITT (Initial value 0xFFFF, Polynomial 0x1021)
+  // คำนวณ CRC16 CCITT (ค่าเริ่มต้น 0xFFFF, Polynomial 0x1021)
   const crc = crc16(payload);
   
   return payload + crc;
@@ -72,29 +73,29 @@ function crc16(data) {
 export function injectAmountIntoEMVCo(qrString, amount) {
   if (!qrString || !qrString.startsWith('000201')) return qrString;
   
-  // 1. Remove the old CRC (last 8 characters: 6304XXXX)
-  // Ensure the string ends with 6304 and 4 chars of CRC
+  // 1. ลบ CRC เดิมออก (8 ตัวอักษรสุดท้าย: 6304XXXX)
+  // ตรวจสอบให้แน่ใจว่าสตริงลงท้ายด้วย 6304 และ CRC 4 ตัวอักษร
   const crcIndex = qrString.indexOf('6304');
   if (crcIndex === -1) return qrString;
   
   let payload = qrString.substring(0, crcIndex);
   
-  // 2. Change 010211 (Static) to 010212 (Dynamic)
+  // 2. เปลี่ยน 010211 (แบบคงที่) เป็น 010212 (แบบไดนามิก)
   payload = payload.replace('010211', '010212');
   
-  // 3. Remove existing tag 54 if present (highly unlikely in a static QR, but just in case)
-  // A robust parser would be better, but for standard BCEL static strings this is safe.
+  // 3. ลบแท็ก 54 ที่มีอยู่ออก (ถึงแม้แทบจะเป็นไปไม่ได้ใน QR คงที่ แต่เผื่อไว้)
+  // การใช้ parser ที่สมบูรณ์แบบจะดีกว่า แต่สำหรับสตริง BCEL ปกติ ถือว่าปลอดภัย
   const tag54Index = payload.indexOf('54');
   if (tag54Index !== -1 && payload.substring(tag54Index, tag54Index + 2) === '54') {
-     // Very naive tag removal, better to just assume it's not there for static QRs
-     // Or we can just rebuild the string properly, but let's assume it doesn't have 54.
+     // การลบแท็กแบบพื้นฐาน ควรสมมติว่าไม่มีแท็กนี้ใน QR แบบคงที่
+     // หรือควรสร้างสตริงขึ้นมาใหม่ให้ถูกต้อง แต่ในที่นี้เราสมมติว่าไม่มี 54
   }
 
-  // 4. Append Tag 54 (Transaction Amount)
+  // 4. เพิ่มแท็ก 54 (จำนวนเงิน)
   if (amount > 0) {
-    // Convert amount to string, no decimals if not needed, or fixed 2
-    // For Laos (LAK), usually no decimals are needed, or .00
-    // BCEL usually accepts plain integers for LAK
+    // แปลงจำนวนเงินเป็นสตริง โดยอาจไม่มีทศนิยม หรือระบุทศนิยม 2 ตำแหน่ง
+    // สำหรับลาว (LAK) ปกติไม่จำเป็นต้องมีทศนิยม หรืออาจใช้ .00
+    // BCEL มักจะรับตัวเลขจำนวนเต็มสำหรับ LAK
     let amountStr = amount.toString();
     if (amountStr.includes('.')) {
       amountStr = Number(amount).toFixed(2);
@@ -104,10 +105,10 @@ export function injectAmountIntoEMVCo(qrString, amount) {
     payload += `54${len}${amountStr}`;
   }
   
-  // 5. Add 6304 back
+  // 5. ใส่ 6304 กลับเข้าไป
   payload += '6304';
   
-  // 6. Calculate new CRC
+  // 6. คำนวณ CRC ใหม่
   const crc = crc16(payload);
   return payload + crc;
 }

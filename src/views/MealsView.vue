@@ -87,7 +87,7 @@
         <div class="flex justify-between items-start mb-4">
           <div>
             <h3 class="text-lg font-bold text-primary-500 mb-1">{{ meal.title || 'Untitled Meal' }}</h3>
-            <p class="text-2xl font-black text-green-600 dark:text-green-500 tracking-tight">{{ meal.total_cost?.toLocaleString() || 0 }} {{ meal.currency || 'LAK' }}</p>
+            <p class="text-2xl font-black text-green-600 dark:text-green-500 tracking-tight">{{ $formatCurrency(meal.total_cost || 0, meal.currency || "LAK") }}</p>
           </div>
           <div class="flex items-center space-x-2">
             <span class="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs font-bold rounded-lg border border-gray-200 dark:border-gray-700">

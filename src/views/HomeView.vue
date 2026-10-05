@@ -44,7 +44,7 @@
 
       <!-- Big Amount -->
       <h2 :class="['text-4xl font-black tracking-tight mb-6', debtsStore.myNetBalance >= 0 ? 'text-green-500' : 'text-red-500']">
-        {{ debtsStore.myNetBalance > 0 ? '+' : '' }}{{ debtsStore.myNetBalance.toLocaleString() }} LAK
+        {{ debtsStore.myNetBalance > 0 ? '+' : '' }}{{ $formatCurrency(debtsStore.myNetBalance, "LAK") }}
       </h2>
 
       <!-- Sub Cards -->
@@ -55,7 +55,7 @@
             <ArrowDownLeft class="w-4 h-4 mr-1.5" />
             <span class="text-xs font-bold uppercase tracking-wider">{{ $t('home.youOwe') }}</span>
           </div>
-          <p class="text-lg font-bold text-red-600 dark:text-red-400">{{ debtsStore.iOweTotal.toLocaleString() }} LAK</p>
+          <p class="text-lg font-bold text-red-600 dark:text-red-400">{{ $formatCurrency(debtsStore.iOweTotal, "LAK") }}</p>
         </div>
         
         <!-- Owed to Me -->
@@ -64,7 +64,7 @@
             <ArrowUpRight class="w-4 h-4 mr-1.5" />
             <span class="text-xs font-bold uppercase tracking-wider">{{ $t('home.youAreOwed') }}</span>
           </div>
-          <p class="text-lg font-bold text-green-600 dark:text-green-400">{{ debtsStore.owedToMeTotal.toLocaleString() }} LAK</p>
+          <p class="text-lg font-bold text-green-600 dark:text-green-400">{{ $formatCurrency(debtsStore.owedToMeTotal, "LAK") }}</p>
         </div>
       </div>
     </div>

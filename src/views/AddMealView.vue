@@ -143,7 +143,7 @@
             <div class="flex justify-between items-center mb-3">
               <p class="text-xs font-bold text-gray-500 dark:text-primary-400">Breakdown:</p>
               <p v-if="form.splitMethod === 'custom'" :class="['text-xs font-bold', remainingCustomAmount === 0 ? 'text-green-500' : 'text-red-500']">
-                Remaining: {{ remainingCustomAmount.toLocaleString() }}
+                Remaining: {{ $formatCurrency(remainingCustomAmount) }}
               </p>
             </div>
             

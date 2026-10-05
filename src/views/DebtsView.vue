@@ -88,7 +88,7 @@
             <!-- Amount & Status Badge -->
             <div class="text-right">
               <p :class="['text-xl font-black tracking-tight mb-1', debtType === 'i_owe' ? 'text-red-500' : 'text-green-500']">
-                {{ debtType === 'i_owe' ? '-' : '+' }}{{ tx.amount.toLocaleString() }} LAK
+                {{ debtType === 'i_owe' ? '-' : '+' }}{{ $formatCurrency(tx.amount, "LAK") }}
               </p>
               
               <span v-if="tx.status === 'SLIP_SENT'" class="inline-flex items-center px-2.5 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 text-[10px] font-bold rounded-lg uppercase tracking-wider">
@@ -148,7 +148,7 @@
           <div class="p-6 overflow-y-auto custom-scrollbar flex-grow">
             <div class="text-center mb-6">
               <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Transfer exactly</p>
-              <p class="text-4xl font-black text-primary-600 dark:text-primary-400">{{ selectedTx?.amount.toLocaleString() }} LAK</p>
+              <p class="text-4xl font-black text-primary-600 dark:text-primary-400">{{ $formatCurrency(selectedTx?.amount, "LAK") }}</p>
               <p class="text-sm font-bold text-gray-700 dark:text-gray-300 mt-2">to {{ selectedTx?.to }}</p>
             </div>
 
@@ -216,7 +216,7 @@
           <div class="p-6">
             <div class="mb-4 text-center">
               <p class="text-sm text-gray-500">Amount Sent</p>
-              <p class="text-3xl font-black text-green-500">{{ selectedTx?.amount.toLocaleString() }} LAK</p>
+              <p class="text-3xl font-black text-green-500">{{ $formatCurrency(selectedTx?.amount, "LAK") }}</p>
               <p class="text-sm font-bold text-gray-700 dark:text-gray-300 mt-1">from {{ selectedTx?.from }}</p>
             </div>
 
