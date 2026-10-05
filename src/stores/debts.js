@@ -47,7 +47,7 @@ export const useDebtsStore = defineStore('debtsStore', () => {
       // 1a. Fetch Meals (Old single-payer format)
       const { data: meals, error: mealErr } = await supabase
         .from('meals')
-        .select('payer_id, total_cost, profiles:payer_id(full_name)')
+        .select('payer_id, total_cost, payer_type, profiles:payer_id(full_name)')
       if (mealErr && mealErr.code !== '42P01') throw mealErr
 
       // 1b. Fetch Meal Payers (New multi-payer format)
@@ -79,7 +79,8 @@ export const useDebtsStore = defineStore('debtsStore', () => {
       // Calculate Net Balances
       if (meals) {
         meals.forEach(m => {
-          if (m.payer_id) { // Only process if payer_id exists (hasn't been migrated/removed)
+          // Only process if it's explicitly single payer or legacy (null payer_type)
+          if (m.payer_id && (m.payer_type === 'single' || !m.payer_type)) {
              if (!balances[m.payer_id]) balances[m.payer_id] = { name: m.profiles?.full_name || 'Unknown', balance: 0, isGuest: false }
              balances[m.payer_id].balance += parseFloat(m.total_cost)
           }

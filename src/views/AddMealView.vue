@@ -450,7 +450,7 @@ const saveMeal = async () => {
       total_cost: form.value.totalAmount,
       currency: form.value.currency,
       group_id: form.value.groupId || null,
-      payer_id: form.value.payerType === 'single' ? form.value.payerId : null,
+      payer_id: form.value.payerType === 'single' ? form.value.payerId : authStore.user.id,
       payer_type: form.value.payerType,
       split_method: form.value.splitMethod,
       created_by: authStore.user.id
