@@ -375,16 +375,24 @@ watch(() => form.value.groupId, async (newGroupId, oldGroupId) => {
   if (newGroupId) {
     const { data: members } = await supabase
       .from('group_members')
-      .select('user_id, profiles(full_name)')
+      .select('user_id, guest_name, profiles(full_name)')
       .eq('group_id', newGroupId)
       
     if (members && members.length > 0) {
       members.forEach(m => {
-        const memberObj = { id: m.user_id, name: m.profiles?.full_name, isGuest: false, amount_owed: 0 }
+        const isGuest = !m.user_id;
+        const memberId = isGuest ? null : m.user_id;
+        const memberName = isGuest ? m.guest_name : m.profiles?.full_name;
+        
+        const memberObj = { id: memberId, name: memberName, isGuest: isGuest, amount_owed: 0 }
         groupMembers.value.push(memberObj)
-        if (!participants.value.some(p => p.id === m.user_id)) participants.value.push(memberObj)
-        if (!potentialPayers.value.some(p => p.id === m.user_id)) {
-           potentialPayers.value.push({ id: m.user_id, name: m.profiles?.full_name, amount_paid: 0 })
+        
+        // Prevent duplicate guests by name if id is null
+        const exists = participants.value.some(p => p.id ? p.id === memberId : p.name === memberName)
+        if (!exists) participants.value.push(memberObj)
+        
+        if (!isGuest && !potentialPayers.value.some(p => p.id === m.user_id)) {
+           potentialPayers.value.push({ id: m.user_id, name: memberName, amount_paid: 0 })
         }
       })
     }

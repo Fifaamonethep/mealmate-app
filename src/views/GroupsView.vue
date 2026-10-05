@@ -149,7 +149,25 @@
             </div>
 
             <div>
-              <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Add Members ({{ selectedMembersCount }})</label>
+              <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Add Members & Guests ({{ selectedMembersCount }})</label>
+              
+              <!-- Guest Input -->
+              <div class="flex space-x-2 mb-4">
+                <input v-model="newGuestName" @keyup.enter="addGroupGuest" type="text" placeholder="Type a guest name (e.g. Mom, Boss)" class="input-field rounded-xl w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 text-sm">
+                <button @click="addGroupGuest" type="button" class="px-4 py-2 bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 rounded-xl font-bold text-sm whitespace-nowrap transition-transform active:scale-95">+ Add Guest</button>
+              </div>
+
+              <!-- Selected Guests -->
+              <div v-if="newGroup.guests.length > 0" class="flex flex-wrap gap-2 mb-4">
+                <div v-for="(g, index) in newGroup.guests" :key="index" class="flex items-center p-2 pr-3 bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                  <div class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center mr-2 text-gray-500 font-bold text-xs">
+                    {{ g.charAt(0) }}
+                  </div>
+                  <span class="text-sm font-bold text-gray-900 dark:text-white">{{ g }} <span class="text-xs text-gray-400 font-normal">(Guest)</span></span>
+                  <button @click="newGroup.guests.splice(index, 1)" type="button" class="ml-2 text-gray-400 hover:text-red-500"><X class="w-3 h-3"/></button>
+                </div>
+              </div>
+
               <div v-if="friends.length === 0" class="text-sm text-gray-500 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 text-center">
                 No friends available to add.
               </div>
@@ -216,11 +234,21 @@ const newGroup = ref({
   avatarPreset: 1,
   avatarFile: null,
   avatarUrlPreview: null,
-  members: []
+  members: [],
+  guests: []
 })
 
+const newGuestName = ref('')
+const addGroupGuest = () => {
+  const name = newGuestName.value.trim()
+  if (name && !newGroup.value.guests.includes(name)) {
+    newGroup.value.guests.push(name)
+  }
+  newGuestName.value = ''
+}
+
 const selectedMembersCount = computed(() => {
-  return newGroup.value.members.length + 1 // +1 for the creator
+  return newGroup.value.members.length + newGroup.value.guests.length + 1 // +1 for the creator
 })
 
 const getPresetGradient = (n) => {
@@ -262,14 +290,26 @@ const fetchGroups = async () => {
          // fetch members for this group
          const { data: gMembers } = await supabase
            .from('group_members')
-           .select('user_id, profiles(full_name, avatar_url)')
+           .select('user_id, guest_name, profiles(full_name, avatar_url)')
            .eq('group_id', g.id)
          
-         const formattedMembers = gMembers?.map(m => ({
-           id: m.user_id,
-           full_name: m.profiles.full_name,
-           avatar_url: m.profiles.avatar_url
-         })) || []
+         const formattedMembers = gMembers?.map(m => {
+           if (m.user_id) {
+             return {
+               id: m.user_id,
+               full_name: m.profiles.full_name,
+               avatar_url: m.profiles.avatar_url,
+               is_guest: false
+             }
+           } else {
+             return {
+               id: 'guest_' + m.guest_name,
+               full_name: m.guest_name + ' (Guest)',
+               avatar_url: null,
+               is_guest: true
+             }
+           }
+         }) || []
 
          // Identify leader (first member or whoever)
          const leader = formattedMembers.length > 0 ? formattedMembers[0] : null;
@@ -348,10 +388,11 @@ const createGroup = async () => {
       .single()
     if (groupError) throw groupError
 
-    // 2. Insert members (creator + selected friends)
+    // 2. Insert members (creator + selected friends + guests)
     const memberRecords = [
       { group_id: groupData.id, user_id: authStore.user.id },
-      ...newGroup.value.members.map(friendId => ({ group_id: groupData.id, user_id: friendId }))
+      ...newGroup.value.members.map(friendId => ({ group_id: groupData.id, user_id: friendId })),
+      ...newGroup.value.guests.map(guestName => ({ group_id: groupData.id, guest_name: guestName }))
     ]
 
     const { error: membersError } = await supabase.from('group_members').insert(memberRecords)

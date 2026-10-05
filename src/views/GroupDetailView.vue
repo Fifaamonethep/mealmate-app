@@ -159,15 +159,21 @@
               <Users class="w-5 h-5 mr-2 text-primary-500" /> Members
             </h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div v-for="member in members" :key="member.user_id" class="flex items-center p-3 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-gray-100 dark:border-gray-700/50">
-                <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 mr-3 overflow-hidden border-2 border-white dark:border-gray-800 relative">
-                  <img v-if="member.profiles?.avatar_url" :src="member.profiles.avatar_url" class="w-full h-full object-cover">
+              <div v-for="member in members" :key="member.id" class="flex items-center p-3 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-gray-100 dark:border-gray-700/50">
+                <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 mr-3 overflow-hidden border-2 border-white dark:border-gray-800 flex items-center justify-center relative">
+                  <img v-if="member.avatarUrl" :src="member.avatarUrl" class="w-full h-full object-cover">
+                  <span v-else-if="member.isGuest" class="text-gray-500 font-bold text-sm">{{ member.name.charAt(0).toUpperCase() }}</span>
                   <User v-else class="w-5 h-5 text-gray-400 m-2" />
                 </div>
                 <div class="flex-1 min-w-0">
-                  <p class="text-sm font-bold text-gray-900 dark:text-white truncate">{{ member.profiles?.full_name }}</p>
+                  <p class="text-sm font-bold text-gray-900 dark:text-white truncate">
+                    {{ member.name }} <span v-if="member.isGuest" class="text-xs text-primary-500 ml-1 font-normal">(Guest)</span>
+                  </p>
                   <p class="text-xs text-gray-500 truncate">Joined {{ new Date(member.joined_at).toLocaleDateString() }}</p>
                 </div>
+                <button v-if="member.isGuest && group.created_by === authStore.user?.id" @click="openMergeGuest(member)" class="text-xs px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg font-bold text-gray-700 dark:text-gray-300 hover:text-primary-500 hover:border-primary-500 transition-colors">
+                  Merge to User
+                </button>
               </div>
             </div>
           </div>
@@ -243,6 +249,47 @@
       </div>
     </transition>
 
+    <!-- Merge Guest Modal -->
+    <transition name="fade">
+      <div v-if="isMergingGuest" class="fixed inset-0 z-[150] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" @click="isMergingGuest = false"></div>
+        <div class="relative bg-white dark:bg-gray-800 w-full max-w-md rounded-[2rem] shadow-2xl flex flex-col">
+          <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center">
+              <User class="w-5 h-5 mr-2 text-primary-500" /> Merge Guest
+            </h3>
+            <button @click="isMergingGuest = false" class="p-2 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+              <X class="w-4 h-4 text-gray-600 dark:text-gray-300" />
+            </button>
+          </div>
+          
+          <div class="p-6 space-y-4">
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Select a friend to replace the guest <b>{{ guestToMerge?.name }}</b>. All their meals and balances in this group will be transferred to this user.
+            </p>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Select Friend</label>
+              <select v-model="selectedMergeUserId" class="input-field rounded-xl w-full">
+                <option value="">-- Choose a friend --</option>
+                <option v-for="f in friendsToMerge" :key="f.id" :value="f.id">
+                  {{ f.full_name }}
+                </option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="p-4 border-t border-gray-100 dark:border-gray-700 flex justify-end space-x-3 bg-white dark:bg-gray-800">
+            <button @click="isMergingGuest = false" class="px-6 py-2 text-gray-500 font-bold hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors">Cancel</button>
+            <button @click="executeMergeGuest" :disabled="isMerging || !selectedMergeUserId" class="btn-primary px-6 py-2 rounded-xl flex items-center disabled:opacity-50">
+              <Loader2 v-if="isMerging" class="w-4 h-4 mr-2 animate-spin" />
+              Merge to User
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
   </div>
 </template>
 
@@ -291,10 +338,28 @@ const loadGroupData = async () => {
     // 2. Fetch Members
     const { data: memberData } = await supabase
       .from('group_members')
-      .select('user_id, joined_at, profiles(full_name, avatar_url)')
+      .select('user_id, guest_name, joined_at, profiles(full_name, avatar_url)')
       .eq('group_id', groupId)
     
-    members.value = memberData || []
+    members.value = memberData?.map(m => {
+      if (m.user_id) {
+        return {
+          ...m,
+          id: m.user_id,
+          name: m.profiles?.full_name,
+          avatarUrl: m.profiles?.avatar_url,
+          isGuest: false
+        }
+      } else {
+        return {
+          ...m,
+          id: 'guest_' + m.guest_name,
+          name: m.guest_name,
+          avatarUrl: null,
+          isGuest: true
+        }
+      }
+    }) || []
 
     // 3. Fetch Meals for this group
     const { data: mealsData, error: mealsErr } = await supabase
@@ -503,6 +568,63 @@ const deleteGroup = async () => {
     isSavingSettings.value = false
   }
 }
+const isMergingGuest = ref(false)
+const isMerging = ref(false)
+const guestToMerge = ref(null)
+const selectedMergeUserId = ref('')
+const friendsToMerge = ref([])
+
+const openMergeGuest = async (member) => {
+  guestToMerge.value = member
+  selectedMergeUserId.value = ''
+  isMergingGuest.value = true
+  
+  // Fetch friends to merge
+  try {
+    const { data: rels } = await supabase
+      .from('friendships')
+      .select('*')
+      .or(`user1_id.eq.${authStore.user.id},user2_id.eq.${authStore.user.id}`)
+      .eq('status', 'accepted')
+
+    if (rels && rels.length > 0) {
+      const friendIds = rels.map(r => r.user1_id === authStore.user.id ? r.user2_id : r.user1_id)
+      const { data: profs } = await supabase.from('profiles').select('id, full_name').in('id', friendIds)
+      
+      // Filter out friends that are already in the group
+      const existingUserIds = members.value.filter(m => !m.isGuest).map(m => m.id)
+      friendsToMerge.value = profs?.filter(p => !existingUserIds.includes(p.id)) || []
+    }
+  } catch(e) {
+    console.error("Error fetching friends:", e)
+  }
+}
+
+const executeMergeGuest = async () => {
+  if (!guestToMerge.value || !selectedMergeUserId.value) return
+  isMerging.value = true
+  
+  try {
+    // Call the Postgres function we created
+    const { error } = await supabase.rpc('merge_guest_to_user', {
+      p_guest_name: guestToMerge.value.name,
+      p_real_user_id: selectedMergeUserId.value,
+      p_group_id: group.value.id
+    })
+    
+    if (error) throw error
+    
+    isMergingGuest.value = false
+    await loadGroupData() // Reload everything
+    alert("Guest successfully merged into user account!")
+  } catch (err) {
+    console.error(err)
+    alert("Error merging guest: " + err.message + "\nMake sure you have run the latest SQL migration in Supabase.")
+  } finally {
+    isMerging.value = false
+  }
+}
+
 </script>
 
 <style scoped>
